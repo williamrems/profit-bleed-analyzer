@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import base64
-import requests # <--- NEW: Needed to actually send data to Salesforce
+import requests
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -104,7 +104,7 @@ st.markdown("""
         margin-top: 20px;
     }
     
-    /* Make the CTA Button aggressive */
+    /* CTA Button */
     div.stButton > button {
         background-color: #dc2626; /* Urgent Red */
         color: white;
@@ -319,11 +319,8 @@ with col_results:
                 else:
                     # --- SALESFORCE SUBMISSION LOGIC ---
                     
-                    # 1. Prepare the URL
                     sf_url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
                     
-                    # 2. Prepare the Description String (Calculator Results)
-                    # We inject the calculator results into the 'description' field so the sales rep sees it.
                     calc_summary = f"""
                     --- PROFIT BLEED CALCULATOR RESULTS ---
                     Persona: {st.session_state.persona_selector}
@@ -335,20 +332,18 @@ with col_results:
                     Analogy: {pain}
                     """
                     
-                    # 3. Prepare the Payload
                     payload = {
                         "oid": "00D5Y000002VYeK",
-                        "retURL": "http://", # Dummy URL, we handle success message here
+                        "retURL": "http://",
                         "first_name": first_name,
                         "last_name": last_name,
                         "email": email,
                         "company": company,
                         "mobile": mobile,
-                        "lead_source": "Website", # Or "SFDC-DM|ContractorFlow" if preferred
+                        "lead_source": "Stop the Bleeding", # <--- HARDCODED LEAD SOURCE
                         "description": calc_summary
                     }
                     
-                    # 4. Send the POST request
                     try:
                         r = requests.post(sf_url, data=payload)
                         if r.status_code == 200:
