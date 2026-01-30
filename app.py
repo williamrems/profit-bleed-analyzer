@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import base64
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -10,32 +11,32 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: PERFECT BALANCE & CLEAN FORM ---
+# --- HELPER: BASE64 IMAGE LOADER ---
+# This allows us to make the logo clickable and embed it in pure HTML
+def get_image_base64(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except:
+        return ""
+
+logo_b64 = get_image_base64("logo.png")
+
+# --- CSS: PERFECT BALANCE & FOOTER ---
 st.markdown("""
     <style>
     /* 1. RESET STREAMLIT PADDING */
     .main .block-container { 
         padding-top: 1rem !important; 
-        padding-bottom: 1rem !important; 
+        padding-bottom: 2rem !important; 
         max-width: 95% !important;
     }
     
-    /* 2. HEADER GRID */
-    .header-wrapper {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: center;
-        gap: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #e2e8f0;
-        margin-bottom: 20px;
-    }
-    
-    /* 3. WIDGET SPACING */
+    /* 2. WIDGET SPACING */
     div[data-testid="stVerticalBlock"] { gap: 0.6rem !important; }
     div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; }
     
-    /* 4. THE BIG METRIC (CENTERED) */
+    /* 3. BIG METRIC */
     .big-metric-container {
         text-align: center;
         margin-bottom: 20px;
@@ -65,7 +66,7 @@ st.markdown("""
         margin-top: 5px;
     }
     
-    /* 5. TWIN SCORECARDS */
+    /* 4. TWIN SCORECARDS */
     .card-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -84,28 +85,51 @@ st.markdown("""
         justify-content: center;
         min-height: 100px;
     }
-    
-    /* RED CARD (PAIN) */
     .card-red { border-bottom: 4px solid #dc2626; }
     .card-red .card-val { font-size: 1.1rem; font-weight: 700; color: #dc2626; line-height: 1.3; }
     .card-red .card-lbl { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
 
-    /* ORANGE CARD (MARGIN) */
     .card-orange { border-bottom: 4px solid #f59e0b; }
     .card-orange .card-val { font-size: 1.8rem; font-weight: 800; color: #d97706; }
     .card-orange .card-lbl { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
     .card-orange .card-sub { font-size: 0.75rem; color: #64748b; }
     
-    /* 6. CLEAN FORM STYLING (THE FIX) */
-    /* Target the Streamlit Form directly to avoid double-borders */
+    /* 5. FORM STYLING */
     div[data-testid="stForm"] {
         background-color: #f8fafc;
         border: 1px solid #cbd5e1;
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-top: 20px; /* Separation from chart */
+        margin-top: 20px;
     }
+
+    /* 6. FOOTER STYLING */
+    .footer-container {
+        margin-top: 60px;
+        padding-top: 30px;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+    }
+    .footer-tagline {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+    .footer-desc {
+        font-size: 0.95rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto 15px auto;
+        line-height: 1.5;
+    }
+    .footer-link a {
+        color: #0d6efd;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .footer-link a:hover { text-decoration: underline; }
 
     #MainMenu, footer, header {visibility: hidden;}
     </style>
@@ -136,7 +160,7 @@ def update_sliders():
     st.session_state['chaos'] = vals['chaos']
     st.session_state['cost'] = vals['cost']
 
-# --- THE 2026 PRICE CHECK ---
+# --- PRICE CHECK ---
 def get_pain_analogy(loss_amount):
     if loss_amount < 5000: return "Basically your beer money for the year."
     elif loss_amount < 12000: return "You burned a decent used side-by-side."
@@ -147,7 +171,7 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 120000: return "That's a down payment on a lake house."
     else: return "You are literally working for free."
 
-# --- SLIDER ROASTS ---
+# --- ROASTS ---
 def get_chaos_commentary(level):
     if level == 0: return "You're lying. No one is this perfect."
     if level == 1: return "1 Home Depot run per job. Manageable."
@@ -157,20 +181,19 @@ def get_chaos_commentary(level):
     if level == 5: return "Total Dumpster Fire. You are working for free."
     return ""
 
-# --- HEADER ---
-c1, c2 = st.columns([1, 8])
-with c1:
-    try: st.image("logo.png", width=100)
-    except: st.write("LOGO")
-with c2:
-    st.markdown("""
-    <div>
-        <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1;">Stop The Bleeding.</h1>
-        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to <b>Home Depot runs</b> and dumb mistakes.</p>
+# --- HEADER (CLICKABLE LOGO) ---
+# We use HTML grid to position logo and text perfectly
+st.markdown(f"""
+    <div style="display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
+        <a href="https://www.contractorflowapp.com" target="_blank">
+            <img src="data:image/png;base64,{logo_b64}" width="110">
+        </a>
+        <div>
+            <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1; color: #1e293b;">Stop The Bleeding.</h1>
+            <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to <b>Home Depot runs</b> and dumb mistakes.</p>
+        </div>
     </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
+""", unsafe_allow_html=True)
 
 # --- DASHBOARD ---
 col_inputs, col_results = st.columns([1, 1.4], gap="large")
@@ -221,7 +244,7 @@ with col_results:
 
     if st.session_state.chaos > 0:
         
-        # 1. THE TOTEM POLE (Center Aligned Metric + Burn Rate)
+        # 1. THE TOTEM POLE
         st.markdown(f"""
         <div class="big-metric-container">
             <div class="metric-label">ANNUAL PROFIT LOST</div>
@@ -230,7 +253,7 @@ with col_results:
         </div>
         """, unsafe_allow_html=True)
         
-        # 2. THE TWIN CARDS (Pain vs Reality)
+        # 2. THE TWIN CARDS
         pain = get_pain_analogy(annual_bleed)
         st.markdown(f"""
         <div class="card-row">
@@ -259,7 +282,7 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
-        # 4. FORM (Clean Integration)
+        # 4. FORM
         st.markdown("##### 🛑 Stop The Bleeding. Get the Fix.")
         with st.form("lead_capture_form"):
             c1, c2, c3 = st.columns([1, 1, 1.5])
@@ -271,3 +294,18 @@ with col_results:
 
     else:
         st.success("You claimed 0 incidents. Move the slider to see reality!")
+
+# --- FOOTER ---
+st.markdown("""
+    <div class="footer-container">
+        <div class="footer-tagline">Built by Contractors, For Contractors. 🔨</div>
+        <div class="footer-desc">
+            All-In-One CRM Software Built for Contractors.<br>
+            Manage leads, sales, scheduling, employees, and projects in one powerful platform.<br>
+            Built on Salesforce and designed by contractors to help you scale with confidence.
+        </div>
+        <div class="footer-link">
+            <a href="https://www.contractorflowapp.com" target="_blank">www.contractorflowapp.com</a>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
