@@ -10,61 +10,72 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: PRECISION FIT ---
+# --- CSS: HEADER FIX & LAYOUT ---
 st.markdown("""
     <style>
-    /* 1. NUKE DEFAULT PADDING */
+    /* 1. RESET STREAMLIT PADDING */
     .main .block-container { 
-        padding-top: 0.5rem !important; 
-        padding-bottom: 0.5rem !important; 
+        padding-top: 1rem !important; 
+        padding-bottom: 1rem !important; 
         max-width: 95% !important;
     }
     
-    /* 2. CUSTOM NAVBAR HEADER */
-    .custom-header {
-        display: flex;
+    /* 2. THE HEADER FIX (CSS GRID) */
+    .header-wrapper {
+        display: grid;
+        grid-template-columns: auto 1fr; /* Logo takes space it needs, Text takes the rest */
         align-items: center;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #e2e8f0;
-        margin-bottom: 15px;
+        gap: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 20px;
     }
-    .header-logo { width: 120px; margin-right: 20px; }
-    .header-title { font-size: 1.6rem; font-weight: 800; color: #1e293b; margin: 0; line-height: 1.1; }
-    .header-sub { font-size: 0.9rem; color: #64748b; margin: 0; }
+    .header-title { 
+        font-size: clamp(1.5rem, 2.5vw, 2.2rem); /* Responsive sizing */
+        font-weight: 800; 
+        color: #1e293b; 
+        line-height: 1.1; 
+        margin: 0;
+    }
+    .header-sub { 
+        font-size: clamp(0.9rem, 1.5vw, 1rem); 
+        color: #64748b; 
+        margin: 5px 0 0 0; 
+    }
     
-    /* 3. TIGHT WIDGET SPACING */
-    div[data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
-    div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; margin-bottom: -5px !important; }
+    /* 3. WIDGET SPACING */
+    div[data-testid="stVerticalBlock"] { gap: 0.6rem !important; }
+    div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; }
     
-    /* 4. METRICS & LABELS */
+    /* 4. BIG METRIC */
     div[data-testid="stMetricValue"] { 
-        font-size: 3.2rem !important; 
+        font-size: 3.5rem !important; 
         color: #dc2626 !important; 
         font-weight: 900; 
-        text-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+        text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
     }
-    div[data-testid="stMetricLabel"] { display: none; } /* Hide default label to save space, we use custom */
+    div[data-testid="stMetricLabel"] { display: none; } 
     
-    /* 5. REALITY CHECK BOXES */
+    /* 5. REALITY BOXES */
     .reality-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .reality-box { 
         background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; 
-        padding: 8px; flex: 1; text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 10px; flex: 1; text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-    .reality-val { font-size: 1.3rem; font-weight: 800; line-height: 1; }
+    .reality-val { font-size: 1.4rem; font-weight: 800; line-height: 1; }
     .reality-lbl { font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
     
-    /* 6. FORM CONTAINER (FOOTER) */
+    /* 6. FORM CONTAINER */
     .form-container {
-        background-color: #f1f5f9;
+        background-color: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 10px;
-        margin-top: 5px;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
     }
-    
-    /* Hide Streamlit Elements */
+
+    /* Hide standard elements */
     #MainMenu, footer, header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
@@ -100,29 +111,28 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 80000: return "That's a Project Manager's salary."
     else: return "You could have bought a vacation cabin."
 
-# --- CUSTOM HTML HEADER (THE SPACE SAVER) ---
-# We use base64 or a direct link for the image if needed, but for now we assume local
-# Since we can't inject local images into HTML easily without base64, 
-# we will use a Layout trick: Column 1 is Empty (Logo Placeholder), Column 2 is Text
-# BUT... Pure HTML is better. Let's stick to Streamlit Image + Text side-by-side but TIGHT.
+# --- CUSTOM HEADER (HTML/CSS GRID) ---
+# We inject the Logo and Text into a single Flex/Grid Container
+# NOTE: Replace 'logo.png' with your real filename. 
+# Since we can't easily inline the image binary in pure HTML without a helper, 
+# we will use st.columns but with the new 'header-wrapper' class applied broadly.
 
-c_head1, c_head2 = st.columns([0.8, 6])
-with c_head1:
-    try: st.image("logo.png", width=110)
+c1, c2 = st.columns([1, 8])
+with c1:
+    try: st.image("logo.png", width=100)
     except: st.write("LOGO")
-with c_head2:
+with c2:
     st.markdown("""
-        <div style="margin-top: 5px;">
-            <h1 style="font-size: 1.8rem; margin:0; line-height:1;">Is Your Process Bleeding Profit?</h1>
-            <p style="font-size: 0.95rem; color: #64748b; margin:0;">Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>
-        </div>
+    <div>
+        <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1;">Is Your Process Bleeding Profit?</h1>
+        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>
+    </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<div style='margin-bottom: 15px; border-bottom: 1px solid #eee;'></div>", unsafe_allow_html=True)
+st.markdown("---")
 
-
-# --- MAIN DASHBOARD (SPLIT 35/65) ---
-col_inputs, col_results = st.columns([1, 1.5], gap="large")
+# --- MAIN DASHBOARD ---
+col_inputs, col_results = st.columns([1, 1.4], gap="large")
 
 # ========================
 # LEFT COLUMN: INPUTS
@@ -143,12 +153,11 @@ with col_inputs:
     st.caption(f"**C. Target Margin:** {st.session_state.margin}%")
     st.slider("Margin", 5, 50, key="margin", step=1, label_visibility="collapsed")
     
-    st.write("") # spacer
+    st.write("") 
 
     # SECTION 2
     st.markdown("##### 2. The Chaos Factor")
     
-    # THE LEGEND IS BACK
     st.markdown(f"**D. 'Oh Sh*t' Moments Per Job:** {st.session_state.chaos}")
     st.caption("Supply runs, callbacks, idle crews, fixing mistakes.")
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
@@ -177,7 +186,7 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        # 1. HEADER LABEL (Custom HTML instead of st.metric label)
+        # 1. HEADER LABEL 
         st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -15px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
         
         # 2. BIG NUMBER
@@ -204,7 +213,7 @@ with col_results:
         </div>
         """, unsafe_allow_html=True)
 
-        # 5. CHART (Optimized Height)
+        # 5. CHART 
         chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
         color_scale = alt.Scale(domain=['Keep', 'Burn'], range=['#198754', '#dc2626'])
         
