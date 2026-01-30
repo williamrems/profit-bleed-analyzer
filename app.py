@@ -64,10 +64,6 @@ st.markdown("""
         margin-top: 5px;
     }
 
-    /* 7. ALERT BOX TWEAK */
-    /* Make the alert box text slightly larger/bolder */
-    .stAlert { font-weight: 600; }
-
     #MainMenu, footer, header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
@@ -108,14 +104,14 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 120000: return "That's a literal down payment on a lake house."
     else: return "You are working for free. Fix your sh*t."
 
-# --- SLIDER ROASTS (UPDATED FOR SUPPLY RUNS) ---
+# --- SLIDER ROASTS (PER JOB LOGIC FIXED) ---
 def get_chaos_commentary(level):
     if level == 0: return "You're lying. No one is this perfect."
-    if level == 1: return "1 Home Depot run / week. Manageable."
-    if level == 2: return "Standard chaos. 2-3 supply runs/week."
-    if level == 3: return "You're at Menards more than the job site."
-    if level == 4: return "Your crews are sitting in the truck right now."
-    if level == 5: return "Total Dumpster Fire. Call us immediately."
+    if level == 1: return "1 Home Depot run per job. Manageable."
+    if level == 2: return "Forgot materials twice? That's expensive."
+    if level == 3: return "You're at Menards more than the roof."
+    if level == 4: return "Your crew is getting paid to sit in the truck."
+    if level == 5: return "Total Dumpster Fire. You are working for free."
     return ""
 
 # --- HEADER ---
@@ -127,7 +123,7 @@ with c2:
     st.markdown("""
     <div>
         <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1;">Stop The Bleeding.</h1>
-        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to dumb mistakes.</p>
+        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to <b>Home Depot runs</b> and dumb mistakes.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -186,14 +182,13 @@ with col_results:
     if st.session_state.chaos > 0:
         st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -10px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
         
-        # --- NEW LAYOUT: SIDE-BY-SIDE ---
+        # --- SIDE-BY-SIDE METRIC + ALERT ---
         c_metric, c_alert = st.columns([1, 1.5], gap="small")
         
         with c_metric:
             st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
             
         with c_alert:
-            # We use a spacer to push the alert down slightly to align with the text of the metric
             st.write("") 
             pain = get_pain_analogy(annual_bleed)
             if annual_bleed > 20000: st.error(f"⚠️ {pain}")
