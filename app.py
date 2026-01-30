@@ -3,7 +3,6 @@ import pandas as pd
 import altair as alt
 
 # --- PAGE CONFIGURATION ---
-# We use layout="wide" to utilize the full desktop screen space
 st.set_page_config(
     page_title="ContractorFlow | Profit Calculator",
     page_icon="favicon.png",
@@ -11,103 +10,118 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CUSTOM CSS ---
+# --- CSS SURGERY (THE TIGHTENING) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #f8f9fa; }
-    .main .block-container { padding-top: 2rem; padding-bottom: 2rem; }
-    h1 { color: #0f172a; font-weight: 800; }
-    /* Make metrics huge */
-    div[data-testid="stMetricValue"] { font-size: 3rem !important; color: #dc2626 !important; font-weight: 900; }
-    /* Button Styling */
-    div.stButton > button { background-color: #0d6efd; color: white; width: 100%; border-radius: 8px; padding: 0.75rem; border: none; }
+    /* 1. AGGRESSIVE PADDING REDUCTION */
+    .main .block-container {
+        padding-top: 1rem !important; /* Was 4rem+ */
+        padding-bottom: 1rem !important;
+        max-width: 95% !important;
+    }
+    
+    /* 2. COMPACT HEADERS */
+    h1 { font-size: 1.5rem !important; margin-bottom: 0 !important; }
+    h3 { font-size: 1.2rem !important; margin-top: 0 !important; margin-bottom: 0.5rem !important; }
+    p { margin-bottom: 0.5rem !important; font-size: 0.95rem; }
+    
+    /* 3. TIGHTEN WIDGET SPACING */
+    div[data-testid="stVerticalBlock"] {
+        gap: 0.5rem !important; /* Shrinks gap between elements */
+    }
+    
+    /* 4. MAKE METRICS STAND OUT BUT NOT TAKE UP HALF THE PAGE */
+    div[data-testid="stMetricValue"] {
+        font-size: 2.5rem !important;
+        color: #dc2626 !important;
+        font-weight: 900;
+        padding-bottom: 0 !important;
+    }
+    
+    /* 5. BUTTON STYLING */
+    div.stButton > button {
+        background-color: #0d6efd;
+        color: white;
+        width: 100%;
+        border-radius: 6px;
+        padding: 0.5rem;
+        border: none;
+    }
     div.stButton > button:hover { background-color: #0b5ed7; color: white; border: none; }
-    /* Center the Logo if possible */
-    div[data-testid="stImage"] { margin-left: auto; margin-right: auto; display: block; }
+    
+    /* 6. CENTER IMAGES */
+    div[data-testid="stImage"] { display: flex; justify-content: center; }
     </style>
 """, unsafe_allow_html=True)
 
 # --- DYNAMIC PAIN LOGIC ---
 def get_pain_analogy(loss_amount):
-    if loss_amount < 5000: return "That's a really nice family vacation to Mexico."
-    elif loss_amount < 12000: return "That's a brand new Honda ATV or two nice jet skis."
-    elif loss_amount < 25000: return "You could have bought a brand new Harley Davidson."
-    elif loss_amount < 50000: return "You literally threw away a brand new Ford F-150 work truck."
-    elif loss_amount < 80000: return "That's a full-time Project Manager's salary you just burned."
-    else: return "You could have bought a freaking vacation home / cabin."
+    if loss_amount < 5000: return "That's a nice family vacation to Mexico."
+    elif loss_amount < 12000: return "That's a brand new Honda ATV or two jet skis."
+    elif loss_amount < 25000: return "You could have bought a brand new Harley."
+    elif loss_amount < 50000: return "You threw away a brand new Ford F-150."
+    elif loss_amount < 80000: return "That's a full-time PM's salary burned."
+    else: return "You could have bought a vacation cabin."
 
-# --- HEADER (Centered) ---
-# We use columns to center the logo/header on the wide page
-h_c1, h_c2, h_c3 = st.columns([1, 2, 1])
-with h_c2:
+# --- COMPACT HEADER ---
+# Using columns to put Logo side-by-side with Title to save vertical space
+h1, h2 = st.columns([1, 4])
+with h1:
     try:
-        st.image("logo.png", width=250)
+        st.image("logo.png", width=120) # Smaller logo
     except:
-        st.title("ContractorFlow")
-    st.markdown("<h3 style='text-align: center; color: #475569;'>Is Your Process Bleeding Profit?</h3>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.</p>", unsafe_allow_html=True)
+        st.write("LOGO")
+with h2:
+    st.markdown("<h1 style='padding-top: 10px;'>Is Your Process Bleeding Profit?</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #475569;'>Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.</p>", unsafe_allow_html=True)
 
 st.divider()
 
-# --- THE DASHBOARD LAYOUT ---
-# This creates the Side-by-Side view. On mobile, col_results drops below col_inputs automatically.
-col_inputs, col_results = st.columns(2, gap="large")
+# --- THE DASHBOARD ---
+col_inputs, col_results = st.columns([1, 1], gap="medium")
 
 # ========================
-# LEFT COLUMN: THE INPUTS
+# LEFT COLUMN: INPUTS
 # ========================
 with col_inputs:
-    st.subheader("1. Your Numbers")
+    st.markdown("### 1. Your Numbers")
     
-    st.write("**A. Job Volume**")
-    avg_jobs = st.slider("Jobs Completed Per Month", 1, 50, 8)
+    # Using markdown for labels allows tighter spacing than st.write
+    st.markdown("**A. Job Volume**")
+    avg_jobs = st.slider("Jobs/Month", 1, 50, 8, label_visibility="collapsed")
+    st.caption(f"Doing **{avg_jobs}** jobs per month.")
 
-    st.write("**B. Average Invoice Amount (Total Job Price)**") 
-    avg_revenue = st.slider("Avg Revenue", 5000, 50000, 15000, 500, format="$%d", label_visibility="collapsed")
-    st.caption(f"Selected: **${avg_revenue:,.0f}** per job")
+    st.markdown("**B. Average Job Price**") 
+    avg_revenue = st.slider("Revenue", 5000, 50000, 15000, 500, format="$%d", label_visibility="collapsed")
+    st.caption(f"Avg Ticket: **${avg_revenue:,.0f}**")
 
-    st.write("**C. Target Net Profit Margin (%)**")
-    profit_margin = st.slider("Profit Margin", 5, 50, 20, 1, format="%d%%", label_visibility="collapsed")
-    st.caption(f"Calculating based on a **{profit_margin}%** healthy margin.")
+    st.markdown("**C. Target Profit Margin (%)**")
+    profit_margin = st.slider("Margin", 5, 50, 20, 1, format="%d%%", label_visibility="collapsed")
+    st.caption(f"Healthy Margin: **{profit_margin}%**")
 
-    st.divider()
+    st.markdown("---") # Tighter divider
     
-    st.subheader("2. The Chaos Factor")
-    st.write("How often do crews wait on materials, return to the supply house, or fix paperwork errors per job?")
-    
+    st.markdown("### 2. The Chaos Factor")
+    st.markdown("**D. 'Oh Sh*t' Moments Per Job**")
     chaos_factor = st.select_slider(
-        "Incidents Per Job",
+        "Incidents",
         options=[0, 1, 2, 3, 4, 5],
         value=2,
-        help="0 = Perfect Robot Efficiency. 5 = Total Chaos."
+        label_visibility="collapsed"
     )
+    st.caption(f"Values: 0 (Perfect) to 5 (Total Chaos). You picked: **{chaos_factor}**")
 
-    st.write("**D. Cost Per 'Oh Sh*t' Moment**")
-    st.caption("Includes: Crew labor (idle time), fuel, vehicle wear, and office time to fix it.")
-    
-    # Tooltip breakdown
-    cost_breakdown = """
-    HOW WE CALCULATE $250:
-    ----------------------
-    1. IDLE CREW (3 Guys x $35/hr x 1 hr lost) = $105
-    2. FUEL & VEHICLE WEAR (Round trip) = $45
-    3. OFFICE ADMIN (Rescheduling/Fixing) = $30
-    4. OPPORTUNITY COST (Profit you didn't make) = $70
-    ----------------------
-    TOTAL = $250 per incident
-    """
-    
-    cost_per_incident = st.slider(
-        "Cost Per Incident", 50, 1000, 250, 50, format="$%d", 
-        label_visibility="collapsed", help=cost_breakdown
-    )
-    st.info(f"Using **${cost_per_incident}** per incident. (Industry Avg is $250)")
+    st.markdown("**E. Cost Per Incident**")
+    # Compact tooltip
+    breakdown = "IDLE CREW ($105) + FUEL ($45) + OFFICE ($30) + OPPORTUNITY ($70) = $250"
+    cost_per_incident = st.slider("Cost", 50, 1000, 250, 50, format="$%d", label_visibility="collapsed", help=breakdown)
+    st.caption(f"Using **${cost_per_incident}** per incident.")
 
 # ==========================
-# RIGHT COLUMN: THE RESULTS
+# RIGHT COLUMN: RESULTS
 # ==========================
 with col_results:
-    # Calculations
+    # Math
     monthly_bleed = (avg_jobs * chaos_factor * cost_per_incident)
     annual_bleed = monthly_bleed * 12
     monthly_revenue = avg_jobs * avg_revenue
@@ -116,47 +130,44 @@ with col_results:
     actual_profit = potential_profit - annual_bleed
 
     if chaos_factor > 0:
-        st.subheader("3. The Damage Report")
+        st.markdown("### 3. The Damage Report")
         
-        # The Metric
-        st.metric(label="ANNUAL PROFIT LOST TO INEFFICIENCY", value=f"${annual_bleed:,.0f}")
+        # Metric
+        st.metric(label="ANNUAL PROFIT LOST", value=f"${annual_bleed:,.0f}")
         
-        # The Pain Analogy
-        pain_message = get_pain_analogy(annual_bleed)
-        if annual_bleed > 20000:
-            st.error(f"⚠️ {pain_message}")
-        else:
-            st.warning(f"⚠️ {pain_message}")
+        # Alert Box
+        pain = get_pain_analogy(annual_bleed)
+        if annual_bleed > 20000: st.error(f"⚠️ {pain}")
+        else: st.warning(f"⚠️ {pain}")
 
-        # The Chart
+        # Chart - Height reduced to 280 to fit screen better
         chart_data = pd.DataFrame({
             'Category': ['Money You Keep', 'Money You Burn'],
-            'Amount': [actual_profit if actual_profit > 0 else 0, annual_bleed],
+            'Amount': [max(0, actual_profit), annual_bleed],
             'Color': ['#198754', '#dc2626'] 
         })
         
-        # We increase the chart height for desktop impact
         c = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('Category', sort=None, title=None, axis=alt.Axis(labels=True, labelAngle=0)),
-            y=alt.Y('Amount', title='Annual Dollars'),
+            x=alt.X('Category', title=None, axis=alt.Axis(labelAngle=0)),
+            y=alt.Y('Amount', title='Dollars', axis=alt.Axis(format='$,.0f')),
             color=alt.Color('Category', scale=alt.Scale(domain=['Money You Keep', 'Money You Burn'], range=['#198754', '#dc2626']), legend=None),
             tooltip=['Category', 'Amount']
-        ).properties(height=400) # Taller chart for desktop
+        ).properties(height=280) # Reduced height
         
         st.altair_chart(c, use_container_width=True)
     else:
-        st.success("You claimed 0 incidents. Either you are a robot, or you're lying to yourself! Try moving the slider to see reality.")
+        st.success("You claimed 0 incidents. Move the slider to see reality!")
 
 
-# --- LEAD CAPTURE (CENTERED) ---
-st.divider()
+# --- LEAD CAPTURE ---
+st.markdown("---")
 
-# We use columns to center the form so it doesn't stretch across the whole wide screen
-c_left, c_mid, c_right = st.columns([1, 2, 1])
+# Compact Lead Form
+c_left, c_mid, c_right = st.columns([1, 3, 1]) # Slightly wider mid column for better form fit
 
 with c_mid:
-    st.subheader("Stop The Bleeding.")
-    st.markdown("Get the full **'Profit Leak Analysis'** and our **Process Fix Checklist** sent to your inbox.")
+    st.markdown("#### Stop The Bleeding.")
+    st.caption("Get the full **'Profit Leak Analysis'** sent to your inbox.")
 
     with st.form("lead_capture_form"):
         f1, f2 = st.columns(2)
@@ -165,31 +176,12 @@ with c_mid:
             
         company = st.text_input("Company Name")
         email = st.text_input("Email Address")
-        phone = st.text_input("Mobile Phone (Optional - for text alerts)")
-        trade = st.selectbox("Primary Trade", ["Roofing", "Siding", "Windows/Doors", "General Contracting", "Other"])
-        revenue = st.selectbox("Annual Revenue Range", ["Under $500k", "$500k - $1M", "$1M - $3M", "$3M - $5M", "$5M+"])
-
+        # Removed extra fields to make it shorter/cleaner
+        
         submitted = st.form_submit_button("SEND ME THE FIX >>")
 
         if submitted:
             if not email or not first_name:
-                st.error("Please fill in your Name and Email to get the report.")
+                st.error("Missing Info.")
             else:
-                # PAYLOAD
-                payload = {
-                    "oid": "YOUR_SALESFORCE_ORG_ID_HERE",
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "company": company,
-                    "email": email,
-                    "phone": phone,
-                    "00N_DUMMY_TRADE_ID": trade,
-                    "00N_DUMMY_REVENUE_ID": revenue,
-                    "00N_DUMMY_ANNUAL_BLEED": annual_bleed,
-                    "00N_DUMMY_CHAOS_FACTOR": chaos_factor,
-                    "00N_DUMMY_COST_PER_INCIDENT": cost_per_incident,
-                    "00N_DUMMY_TARGET_MARGIN": profit_margin,
-                    "lead_source": "Profit Calculator App"
-                }
                 st.success(f"Report sent to {email}!")
-                st.balloons()
