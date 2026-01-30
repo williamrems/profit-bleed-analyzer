@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: PRECISION FIT ---
+# --- CSS: PERFECT BALANCE ---
 st.markdown("""
     <style>
     /* 1. RESET STREAMLIT PADDING */
@@ -35,25 +35,66 @@ st.markdown("""
     div[data-testid="stVerticalBlock"] { gap: 0.6rem !important; }
     div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; }
     
-    /* 4. BIG METRIC */
-    div[data-testid="stMetricValue"] { 
-        font-size: 3.5rem !important; 
-        color: #dc2626 !important; 
-        font-weight: 900; 
-        text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+    /* 4. THE BIG METRIC (CENTERED) */
+    .big-metric-container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #64748b;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .metric-value {
+        font-size: 3.8rem;
+        font-weight: 900;
+        color: #dc2626;
         line-height: 1.0;
+        text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
     }
-    div[data-testid="stMetricLabel"] { display: none; } 
+    .metric-sub {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #dc2626;
+        background-color: #fee2e2;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 5px;
+    }
     
-    /* 5. REALITY BOXES */
-    .reality-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .reality-box { 
-        background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; 
-        padding: 10px; flex: 1; text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    /* 5. TWIN SCORECARDS */
+    .card-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
     }
-    .reality-val { font-size: 1.4rem; font-weight: 800; line-height: 1; }
-    .reality-lbl { font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
+    .score-card {
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 100px;
+    }
+    
+    /* RED CARD (PAIN) */
+    .card-red { border-bottom: 4px solid #dc2626; }
+    .card-red .card-val { font-size: 1.1rem; font-weight: 700; color: #dc2626; line-height: 1.3; }
+    .card-red .card-lbl { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
+
+    /* ORANGE CARD (MARGIN) */
+    .card-orange { border-bottom: 4px solid #f59e0b; }
+    .card-orange .card-val { font-size: 1.8rem; font-weight: 800; color: #d97706; }
+    .card-orange .card-lbl { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
+    .card-orange .card-sub { font-size: 0.75rem; color: #64748b; }
     
     /* 6. FORM CONTAINER */
     .form-container {
@@ -95,16 +136,16 @@ def update_sliders():
 
 # --- THE 2026 PRICE CHECK ---
 def get_pain_analogy(loss_amount):
-    if loss_amount < 5000: return "That's basically your beer money for the year."
+    if loss_amount < 5000: return "Basically your beer money for the year."
     elif loss_amount < 12000: return "You burned a decent used side-by-side."
     elif loss_amount < 20000: return "That's a nice used Harley you don't have."
-    elif loss_amount < 35000: return "You threw away a used work truck (100k miles)."
-    elif loss_amount < 55000: return "You torched a brand new F-150 XL (Base Model)."
+    elif loss_amount < 35000: return "You threw away a used work truck."
+    elif loss_amount < 55000: return "You torched a brand new F-150 XL."
     elif loss_amount < 85000: return "That's a fully loaded F-250 Platinum gone."
-    elif loss_amount < 120000: return "That's a literal down payment on a lake house."
-    else: return "You are working for free. Fix your sh*t."
+    elif loss_amount < 120000: return "That's a down payment on a lake house."
+    else: return "You are literally working for free."
 
-# --- SLIDER ROASTS (PER JOB LOGIC FIXED) ---
+# --- SLIDER ROASTS ---
 def get_chaos_commentary(level):
     if level == 0: return "You're lying. No one is this perfect."
     if level == 1: return "1 Home Depot run per job. Manageable."
@@ -152,11 +193,8 @@ with col_inputs:
     st.markdown("##### 2. The Chaos Factor")
     
     st.markdown(f"**D. 'Oh Sh*t' Moments Per Job:** {st.session_state.chaos}")
-    
-    # DYNAMIC ROAST
     roast = get_chaos_commentary(st.session_state.chaos)
     st.caption(f"*{roast}*")
-    
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
 
     st.write("") 
@@ -180,36 +218,33 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -10px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
-        
-        # --- SIDE-BY-SIDE METRIC + ALERT ---
-        c_metric, c_alert = st.columns([1, 1.5], gap="small")
-        
-        with c_metric:
-            st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
-            
-        with c_alert:
-            st.write("") 
-            pain = get_pain_analogy(annual_bleed)
-            if annual_bleed > 20000: st.error(f"⚠️ {pain}")
-            else: st.warning(f"⚠️ {pain}")
+        pain = get_pain_analogy(annual_bleed)
 
-        # --- REALITY BOXES ---
+        # 1. THE TOTEM POLE (Center Aligned Metric + Burn Rate)
         st.markdown(f"""
-        <div class="reality-row">
-            <div class="reality-box" style="border-bottom: 4px solid #dc2626;">
-                <div class="reality-lbl">Profit Burned</div>
-                <div class="reality-val" style="color: #dc2626;">{percent_burned:.1f}%</div>
-                <div style='font-size:0.7rem; color:#94a3b8;'>of your potential</div>
+        <div class="big-metric-container">
+            <div class="metric-label">ANNUAL PROFIT LOST</div>
+            <div class="metric-value">${annual_bleed:,.0f}</div>
+            <div class="metric-sub">🔥 {percent_burned:.1f}% of Profit Burned</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 2. THE TWIN CARDS (Pain vs Reality)
+        st.markdown(f"""
+        <div class="card-row">
+            <div class="score-card card-red">
+                <div class="card-lbl">The Reality</div>
+                <div class="card-val">{pain}</div>
             </div>
-            <div class="reality-box" style="border-bottom: 4px solid #f59e0b;">
-                <div class="reality-lbl">Realized Margin</div>
-                <div class="reality-val" style="color: #d97706;">{realized_margin:.1f}%</div>
-                <div style='font-size:0.7rem; color:#94a3b8;'>vs {st.session_state.margin}% Goal</div>
+            <div class="score-card card-orange">
+                <div class="card-lbl">Realized Margin</div>
+                <div class="card-val">{realized_margin:.1f}%</div>
+                <div class="card-sub">vs {st.session_state.margin}% Goal</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
+        # 3. CHART
         chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
         color_scale = alt.Scale(domain=['Keep', 'Burn'], range=['#198754', '#dc2626'])
         
@@ -222,6 +257,7 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
+        # 4. FORM
         st.markdown('<div class="form-container">', unsafe_allow_html=True)
         st.caption("🛑 **Stop The Bleeding. Get the Fix.**")
         with st.form("lead_capture_form"):
