@@ -7,40 +7,55 @@ st.set_page_config(
     page_title="ContractorFlow | Profit Calculator",
     page_icon="favicon.png",
     layout="wide", 
-    initial_sidebar_state="expanded" # Expanded so they see the Persona picker immediately
+    initial_sidebar_state="expanded"
 )
 
-# --- CSS SURGERY (MAXIMUM TIGHTNESS) ---
+# --- CSS POLISH (RELAXED & FIXED) ---
 st.markdown("""
     <style>
-    /* Reduce main padding to almost nothing */
-    .main .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    /* 1. Less Aggressive Top Padding (Give it some headroom) */
+    .main .block-container { padding-top: 2rem !important; padding-bottom: 2rem !important; }
     
-    /* Compact Headers */
-    h1 { font-size: 1.4rem !important; margin: 0 !important; }
-    h3 { font-size: 1.1rem !important; margin: 0 !important; }
-    p { font-size: 0.9rem !important; margin-bottom: 0.2rem !important; }
+    /* 2. Relaxed Widget Spacing (No longer cramped) */
+    div[data-testid="stVerticalBlock"] { gap: 1rem !important; }
     
-    /* Tighter Widget Spacing */
-    div[data-testid="stVerticalBlock"] { gap: 0.3rem !important; }
+    /* 3. Header Styling */
+    h1 { font-size: 1.8rem !important; margin: 0 !important; }
+    p { font-size: 1rem !important; color: #64748b; }
     
-    /* Metrics */
-    div[data-testid="stMetricValue"] { font-size: 2rem !important; color: #dc2626 !important; font-weight: 900; }
-    .reality-metric { font-size: 1.2rem; font-weight: 800; color: #0f172a; }
-    .reality-label { font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+    /* 4. The BIG Metric */
+    div[data-testid="stMetricValue"] { font-size: 2.5rem !important; color: #dc2626 !important; font-weight: 900; }
     
-    /* Form Styling - Compact */
-    div[data-testid="stForm"] { border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px; background-color: #fff; }
+    /* 5. Custom Reality Metrics (Fixed Cropping) */
+    .reality-box {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 10px;
+        border-left: 4px solid #cbd5e1;
+        margin-bottom: 10px;
+    }
+    .reality-label { font-size: 0.85rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .reality-value { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+    .reality-sub { font-size: 0.8rem; color: #94a3b8; }
+    
+    /* 6. Form Styling */
+    div[data-testid="stForm"] { 
+        border: 1px solid #e2e8f0; 
+        padding: 1.5rem; 
+        border-radius: 12px; 
+        background-color: #ffffff; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
     
     /* Center Images */
     div[data-testid="stImage"] { display: flex; justify-content: center; }
     
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] { padding-top: 2rem; background-color: #f1f5f9; }
+    /* Sidebar Background */
+    section[data-testid="stSidebar"] { background-color: #f8fafc; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- PERSONA LOGIC ---
+# --- LOGIC & SETUP ---
 personas = {
     "Custom (Enter Your Own)": {"jobs": 8, "rev": 15000, "margin": 20, "chaos": 2, "cost": 250},
     "Chuck in a Truck (Small Owner)": {"jobs": 4, "rev": 12000, "margin": 25, "chaos": 4, "cost": 150},
@@ -48,7 +63,6 @@ personas = {
     "Volume Player (Storm Chaser)": {"jobs": 40, "rev": 15000, "margin": 15, "chaos": 1, "cost": 250}
 }
 
-# Session State Init
 if 'jobs' not in st.session_state: st.session_state['jobs'] = 8
 if 'rev' not in st.session_state: st.session_state['rev'] = 15000
 if 'margin' not in st.session_state: st.session_state['margin'] = 20
@@ -72,32 +86,32 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 80000: return "That's a Project Manager's salary burned."
     else: return "You could have bought a vacation cabin."
 
-# --- SIDEBAR (CONFIGURATION) ---
+# --- SIDEBAR ---
 with st.sidebar:
     try: st.image("logo.png", width=150) 
     except: st.header("ContractorFlow")
     
     st.markdown("### ⚙️ Scenarios")
     st.selectbox("Load Profile:", options=list(personas.keys()), key="persona_selector", on_change=update_sliders)
-    st.info("👈 Pick a profile to auto-load realistic industry numbers.")
+    st.info("👈 **Start Here:** Pick a profile to see realistic numbers, then tweak them.")
 
-# --- HEADER (COMPACT) ---
-c1, c2 = st.columns([1, 6]) # Use columns to align text 
+# --- HEADER ---
+c1, c2 = st.columns([1, 8]) 
 with c2:
     st.markdown("<h1>Is Your Process Bleeding Profit?</h1>", unsafe_allow_html=True)
-    st.caption("Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.")
+    st.markdown("<p>Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.</p>", unsafe_allow_html=True)
 
-st.markdown("---")
+st.write("") # Spacer
 
-# --- MAIN DASHBOARD (2 COLUMNS) ---
-# We give the Right Column slightly more width (1.2) to accommodate the Form comfortably
+# --- MAIN DASHBOARD ---
+# Increased gap to 'large' for better separation
 col_inputs, col_results = st.columns([1, 1.2], gap="large")
 
 # ========================
 # LEFT COLUMN: INPUTS
 # ========================
 with col_inputs:
-    st.markdown("### 1. Your Numbers")
+    st.subheader("1. Your Numbers")
     
     st.markdown("**A. Job Volume**")
     st.slider("Jobs/Month", 1, 50, key="jobs", label_visibility="collapsed")
@@ -113,7 +127,7 @@ with col_inputs:
 
     st.markdown("---") 
     
-    st.markdown("### 2. The Chaos Factor")
+    st.subheader("2. The Chaos Factor")
     st.markdown("**D. 'Oh Sh*t' Moments Per Job**")
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
     st.caption(f"Incidents: **{st.session_state.chaos}**")
@@ -124,7 +138,7 @@ with col_inputs:
     st.caption(f"Using **${st.session_state.cost}** per incident.")
 
 # ==========================
-# RIGHT COLUMN: RESULTS + FORM
+# RIGHT COLUMN: RESULTS
 # ==========================
 with col_results:
     # Calculations
@@ -150,43 +164,50 @@ with col_results:
         if annual_bleed > 20000: st.error(f"⚠️ {pain}")
         else: st.warning(f"⚠️ {pain}")
 
-        # 3. REALITY CHECK METRICS
-        k1, k2 = st.columns(2)
-        with k1:
-            st.markdown(f"<div class='reality-label'>Profit Burned</div><div class='reality-metric' style='color:#dc2626;'>{percent_burned:.1f}%</div>", unsafe_allow_html=True)
-        with k2:
-            st.markdown(f"<div class='reality-label'>Realized Margin</div><div class='reality-metric' style='color:#d97706;'>{realized_margin:.1f}%</div>", unsafe_allow_html=True)
+        # 3. REALITY CHECK METRICS (New CSS Grid Layout)
+        # This prevents the cropping issues by using styled divs instead of st.columns
+        st.markdown(f"""
+        <div style="display: flex; gap: 15px; margin-top: 10px; margin-bottom: 20px;">
+            <div class="reality-box" style="flex: 1; border-left-color: #dc2626;">
+                <div class="reality-label">Profit Burned</div>
+                <div class="reality-value" style="color: #dc2626;">{percent_burned:.1f}%</div>
+                <div class="reality-sub">of profit is gone</div>
+            </div>
+            <div class="reality-box" style="flex: 1; border-left-color: #f59e0b;">
+                <div class="reality-label">Realized Margin</div>
+                <div class="reality-value" style="color: #d97706;">{realized_margin:.1f}%</div>
+                <div class="reality-sub">vs {st.session_state.margin}% Goal</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # 4. COMPACT CHART (Height reduced to 180px)
-        chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
+        # 4. CHART (FIXED COLORS)
+        chart_data = pd.DataFrame({'Category': ['Money You Keep', 'Money You Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
+        
+        # Explicitly map 'Money You Keep' to Green and 'Money You Burn' to Red
+        color_scale = alt.Scale(domain=['Money You Keep', 'Money You Burn'], range=['#198754', '#dc2626'])
+        
         c = alt.Chart(chart_data).mark_bar().encode(
-            x=alt.X('Amount', title=None, axis=None), # Horizontal Bar saves vertical space!
-            y=alt.Y('Category', title=None, sort=None),
-            color=alt.Color('Category', scale=alt.Scale(range=['#198754', '#dc2626']), legend=None),
+            x=alt.X('Amount', title=None, axis=None, stack='normalize'), # Stacked bar 100% width
+            color=alt.Color('Category', scale=color_scale, legend=None),
             tooltip=['Category', 'Amount']
-        ).properties(height=100) # Ultra compact horizontal bar
+        ).properties(height=60) # Sleek horizontal bar
+        
         st.altair_chart(c, use_container_width=True)
 
-    # 5. THE FORM (Now inside the Right Column!)
-    st.markdown("#### Stop The Bleeding.")
-    with st.form("lead_capture_form"):
-        # Very compact form layout
-        f1, f2 = st.columns(2)
-        with f1: first_name = st.text_input("First Name")
-        with f2: last_name = st.text_input("Last Name")
-        email = st.text_input("Email Address") # Company name removed to save space (you can infer it from email domain often)
-        
-        submitted = st.form_submit_button("SEND ME THE FIX >>")
+        # 5. THE FORM
+        st.markdown("#### Stop The Bleeding.")
+        with st.form("lead_capture_form"):
+            f1, f2 = st.columns(2)
+            with f1: first_name = st.text_input("First Name")
+            with f2: last_name = st.text_input("Last Name")
+            email = st.text_input("Email Address")
+            
+            submitted = st.form_submit_button("SEND ME THE FIX >>")
 
-        if submitted:
-            if not email: st.error("Need an email!")
-            else:
-                payload = {
-                    "oid": "YOUR_SALESFORCE_ORG_ID_HERE",
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                    "00N_BLEED": annual_bleed,
-                    "description": f"Persona: {st.session_state.persona_selector}"
-                }
-                st.success(f"Sent to {email}!")
+            if submitted:
+                if not email: st.error("Need an email!")
+                else:
+                    st.success(f"Report sent to {email}!")
+    else:
+        st.success("You claimed 0 incidents. Move the slider to see reality!")
