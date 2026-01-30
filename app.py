@@ -50,14 +50,12 @@ st.title("Is Your Process Bleeding Profit?")
 st.caption("Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.")
 st.divider()
 
-# --- INPUT SECTION ---
+# --- INPUT SECTION 1: JOB DATA ---
 st.subheader("1. Your Numbers")
 
 avg_jobs = st.slider("Jobs Completed Per Month", min_value=1, max_value=50, value=8)
 
-# DYNAMIC CURRENCY HEADER
-# Streamlit sliders are tricky with commas, so we show the formatted number clearly above
-# SWAP THIS
+# Revenue Slider
 st.write(f"**Average Invoice Amount (Total Job Price):**") 
 avg_revenue = st.slider(
     "Select Revenue", 
@@ -68,10 +66,10 @@ avg_revenue = st.slider(
     format="$%d",
     label_visibility="collapsed"
 )
-# Display the big clean number with commas
 st.info(f"Selected Average Job Size: **${avg_revenue:,.0f}**")
 
 
+# --- INPUT SECTION 2: THE CHAOS ---
 st.markdown("### 2. The Chaos Factor")
 st.write("How often do crews wait on materials, return to the supply house, or fix paperwork errors per job?")
 
@@ -82,8 +80,22 @@ chaos_factor = st.select_slider(
     help="0 = Perfect Robot Efficiency. 5 = Total Chaos."
 )
 
+# --- NEW: DYNAMIC COST PER INCIDENT ---
+st.write("**Cost Per 'Oh Sh*t' Moment:**")
+st.caption("Includes: Crew labor (idle time), fuel, vehicle wear, and office time to fix it.")
+cost_per_incident = st.slider(
+    "Cost Per Incident",
+    min_value=50,
+    max_value=1000,
+    value=250, # ANCHORED DEFAULT
+    step=50,
+    format="$%d",
+    label_visibility="collapsed"
+)
+st.info(f"Using **${cost_per_incident}** per incident. (Industry Avg is $250)")
+
+
 # --- THE MATH ---
-cost_per_incident = 250 
 monthly_bleed = (avg_jobs * chaos_factor * cost_per_incident)
 annual_bleed = monthly_bleed * 12
 
@@ -100,7 +112,6 @@ if chaos_factor > 0:
     
     st.metric(label="ANNUAL PROFIT LOST TO INEFFICIENCY", value=f"${annual_bleed:,.0f}")
     
-    # --- DYNAMIC ANALOGY CALL ---
     pain_message = get_pain_analogy(annual_bleed)
     
     if annual_bleed > 20000:
@@ -152,7 +163,6 @@ with st.form("lead_capture_form"):
         if not email or not first_name:
             st.error("Please fill in your Name and Email to get the report.")
         else:
-            # PAYLOAD WITH DYNAMIC ANALOGY INCLUDED (Optional)
             payload = {
                 "oid": "YOUR_SALESFORCE_ORG_ID_HERE",
                 "first_name": first_name,
@@ -164,6 +174,8 @@ with st.form("lead_capture_form"):
                 "00N_DUMMY_REVENUE_ID": revenue,
                 "00N_DUMMY_ANNUAL_BLEED": annual_bleed,
                 "00N_DUMMY_CHAOS_FACTOR": chaos_factor,
+                # Pass their custom cost estimate so Sales knows it
+                "00N_DUMMY_COST_PER_INCIDENT": cost_per_incident, 
                 "lead_source": "Profit Calculator App"
             }
             
