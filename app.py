@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import base64
+import requests # <--- NEW: Needed to actually send data to Salesforce
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -12,7 +13,6 @@ st.set_page_config(
 )
 
 # --- HELPER: BASE64 IMAGE LOADER ---
-# This allows us to make the logo clickable and embed it in pure HTML
 def get_image_base64(image_path):
     try:
         with open(image_path, "rb") as img_file:
@@ -22,7 +22,7 @@ def get_image_base64(image_path):
 
 logo_b64 = get_image_base64("logo.png")
 
-# --- CSS: PERFECT BALANCE & FOOTER ---
+# --- CSS: PERFECT BALANCE & CLEAN FORM ---
 st.markdown("""
     <style>
     /* 1. RESET STREAMLIT PADDING */
@@ -103,6 +103,23 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         margin-top: 20px;
     }
+    
+    /* Make the CTA Button aggressive */
+    div.stButton > button {
+        background-color: #dc2626; /* Urgent Red */
+        color: white;
+        font-weight: 800;
+        border: none;
+        padding: 0.8rem 1rem;
+        text-transform: uppercase;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    div.stButton > button:hover {
+        background-color: #b91c1c;
+        border: none;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
 
     /* 6. FOOTER STYLING */
     .footer-container {
@@ -182,7 +199,6 @@ def get_chaos_commentary(level):
     return ""
 
 # --- HEADER (CLICKABLE LOGO) ---
-# We use HTML grid to position logo and text perfectly
 st.markdown(f"""
     <div style="display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
         <a href="https://www.contractorflowapp.com" target="_blank">
@@ -203,7 +219,6 @@ with col_inputs:
     st.write("") 
 
     st.markdown("##### 1. Your Numbers")
-    
     st.caption(f"**A. Job Volume:** {st.session_state.jobs}/mo")
     st.slider("Jobs", 1, 50, key="jobs", label_visibility="collapsed")
 
@@ -216,7 +231,6 @@ with col_inputs:
     st.write("") 
 
     st.markdown("##### 2. The Chaos Factor")
-    
     st.markdown(f"**D. 'Oh Sh*t' Moments Per Job:** {st.session_state.chaos}")
     roast = get_chaos_commentary(st.session_state.chaos)
     st.caption(f"*{roast}*")
@@ -282,15 +296,68 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
-        # 4. FORM
-        st.markdown("##### 🛑 Stop The Bleeding. Get the Fix.")
+        # 4. FORM (REAL SALESFORCE WEB-TO-LEAD)
+        st.markdown("##### 🛑 Stop The Bleeding. Fix Your Numbers.")
+        
         with st.form("lead_capture_form"):
-            c1, c2, c3 = st.columns([1, 1, 1.5])
-            with c1: st.text_input("First Name", label_visibility="collapsed", placeholder="First Name")
-            with c2: st.text_input("Last Name", label_visibility="collapsed", placeholder="Last Name")
-            with c3: st.text_input("Email", label_visibility="collapsed", placeholder="Email Address")
+            c1, c2 = st.columns(2)
+            with c1: 
+                first_name = st.text_input("First Name")
+                email = st.text_input("Email")
+            with c2: 
+                last_name = st.text_input("Last Name")
+                company = st.text_input("Company Name")
             
-            st.form_submit_button("SEND ME THE REPORT >>", use_container_width=True)
+            mobile = st.text_input("Mobile Phone (Optional)")
+
+            # The CTA Button
+            submitted = st.form_submit_button("STOP THE BLEEDING - BOOK A DEMO >>")
+
+            if submitted:
+                if not email or not last_name:
+                    st.error("Please provide at least a Name and Email.")
+                else:
+                    # --- SALESFORCE SUBMISSION LOGIC ---
+                    
+                    # 1. Prepare the URL
+                    sf_url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
+                    
+                    # 2. Prepare the Description String (Calculator Results)
+                    # We inject the calculator results into the 'description' field so the sales rep sees it.
+                    calc_summary = f"""
+                    --- PROFIT BLEED CALCULATOR RESULTS ---
+                    Persona: {st.session_state.persona_selector}
+                    Annual Profit Lost: ${annual_bleed:,.0f}
+                    Profit Burned: {percent_burned:.1f}%
+                    Realized Margin: {realized_margin:.1f}% (vs {st.session_state.margin}% Target)
+                    Chaos Factor: {st.session_state.chaos}/5
+                    Cost Per Incident: ${st.session_state.cost}
+                    Analogy: {pain}
+                    """
+                    
+                    # 3. Prepare the Payload
+                    payload = {
+                        "oid": "00D5Y000002VYeK",
+                        "retURL": "http://", # Dummy URL, we handle success message here
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "email": email,
+                        "company": company,
+                        "mobile": mobile,
+                        "lead_source": "Website", # Or "SFDC-DM|ContractorFlow" if preferred
+                        "description": calc_summary
+                    }
+                    
+                    # 4. Send the POST request
+                    try:
+                        r = requests.post(sf_url, data=payload)
+                        if r.status_code == 200:
+                            st.success("Request Sent! A ContractorFlow expert will reach out shortly.")
+                            st.balloons()
+                        else:
+                            st.error("There was an error sending your request. Please try again.")
+                    except Exception as e:
+                        st.error(f"Connection Error: {e}")
 
     else:
         st.success("You claimed 0 incidents. Move the slider to see reality!")
