@@ -4,13 +4,13 @@ import altair as alt
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="ContractorFlow | Profit Calculator",
+    page_title="ContractorFlow | Profit Bleed",
     page_icon="favicon.png",
     layout="wide", 
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: HEADER FIX & LAYOUT ---
+# --- CSS: PRECISION FIT ---
 st.markdown("""
     <style>
     /* 1. RESET STREAMLIT PADDING */
@@ -20,27 +20,15 @@ st.markdown("""
         max-width: 95% !important;
     }
     
-    /* 2. THE HEADER FIX (CSS GRID) */
+    /* 2. HEADER GRID */
     .header-wrapper {
         display: grid;
-        grid-template-columns: auto 1fr; /* Logo takes space it needs, Text takes the rest */
+        grid-template-columns: auto 1fr;
         align-items: center;
         gap: 20px;
         padding-bottom: 15px;
         border-bottom: 1px solid #e2e8f0;
         margin-bottom: 20px;
-    }
-    .header-title { 
-        font-size: clamp(1.5rem, 2.5vw, 2.2rem); /* Responsive sizing */
-        font-weight: 800; 
-        color: #1e293b; 
-        line-height: 1.1; 
-        margin: 0;
-    }
-    .header-sub { 
-        font-size: clamp(0.9rem, 1.5vw, 1rem); 
-        color: #64748b; 
-        margin: 5px 0 0 0; 
     }
     
     /* 3. WIDGET SPACING */
@@ -75,17 +63,18 @@ st.markdown("""
         margin-top: 15px;
     }
 
-    /* Hide standard elements */
     #MainMenu, footer, header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIC ---
+# --- CRASS PERSONAS ---
 personas = {
-    "Custom (Enter Your Own)": {"jobs": 8, "rev": 15000, "margin": 20, "chaos": 2, "cost": 250},
-    "Chuck in a Truck": {"jobs": 4, "rev": 12000, "margin": 25, "chaos": 4, "cost": 150},
-    "Growing Pains": {"jobs": 15, "rev": 18000, "margin": 20, "chaos": 3, "cost": 300},
-    "Volume Player": {"jobs": 40, "rev": 15000, "margin": 15, "chaos": 1, "cost": 250}
+    "Select a Profile...": {"jobs": 8, "rev": 15000, "margin": 20, "chaos": 2, "cost": 250},
+    "Chuck in a Truck (Solo & Stressed)": {"jobs": 4, "rev": 12000, "margin": 25, "chaos": 4, "cost": 150},
+    "The 'Napkin Math' O.G. (Old School)": {"jobs": 10, "rev": 14000, "margin": 30, "chaos": 3, "cost": 200},
+    "The Sales God (Great Sales, Sh*t Ops)": {"jobs": 20, "rev": 18000, "margin": 25, "chaos": 4, "cost": 350},
+    "The Storm Chaser (Burn & Turn)": {"jobs": 50, "rev": 15000, "margin": 15, "chaos": 2, "cost": 300},
+    "The 'We'll Fix It Later' Crew": {"jobs": 12, "rev": 16000, "margin": 18, "chaos": 5, "cost": 400}
 }
 
 if 'jobs' not in st.session_state: st.session_state['jobs'] = 8
@@ -103,20 +92,28 @@ def update_sliders():
     st.session_state['chaos'] = vals['chaos']
     st.session_state['cost'] = vals['cost']
 
+# --- THE 2026 PRICE CHECK ---
 def get_pain_analogy(loss_amount):
-    if loss_amount < 5000: return "That's a nice family vacation."
-    elif loss_amount < 12000: return "That's a brand new Honda ATV."
-    elif loss_amount < 25000: return "You could have bought a new Harley."
-    elif loss_amount < 50000: return "You threw away a brand new F-150."
-    elif loss_amount < 80000: return "That's a Project Manager's salary."
-    else: return "You could have bought a vacation cabin."
+    if loss_amount < 5000: return "That's basically your beer money for the year."
+    elif loss_amount < 12000: return "You burned a decent used side-by-side."
+    elif loss_amount < 20000: return "That's a nice used Harley you don't have."
+    elif loss_amount < 35000: return "You threw away a used work truck (100k miles)."
+    elif loss_amount < 55000: return "You torched a brand new F-150 XL (Base Model)."
+    elif loss_amount < 85000: return "That's a fully loaded F-250 Platinum gone."
+    elif loss_amount < 120000: return "That's a literal down payment on a lake house."
+    else: return "You are working for free. Fix your sh*t."
 
-# --- CUSTOM HEADER (HTML/CSS GRID) ---
-# We inject the Logo and Text into a single Flex/Grid Container
-# NOTE: Replace 'logo.png' with your real filename. 
-# Since we can't easily inline the image binary in pure HTML without a helper, 
-# we will use st.columns but with the new 'header-wrapper' class applied broadly.
+# --- SLIDER ROASTS ---
+def get_chaos_commentary(level):
+    if level == 0: return "You're lying. No one is this perfect."
+    if level == 1: return "Tight ship. Or you're forgetting stuff."
+    if level == 2: return "Standard chaos. Still expensive."
+    if level == 3: return "You're leaking cash daily."
+    if level == 4: return "Your hair is on fire."
+    if level == 5: return "Total Dumpster Fire. Call us immediately."
+    return ""
 
+# --- HEADER ---
 c1, c2 = st.columns([1, 8])
 with c1:
     try: st.image("logo.png", width=100)
@@ -124,24 +121,20 @@ with c1:
 with c2:
     st.markdown("""
     <div>
-        <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1;">Is Your Process Bleeding Profit?</h1>
-        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>
+        <h1 style="font-size: 2.2rem; margin: 0; line-height: 1.1;">Stop The Bleeding.</h1>
+        <p style="font-size: 1rem; color: #64748b; margin: 0;">Most exterior remodelers lose 15-20% of their margin to dumb mistakes.</p>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("---")
 
-# --- MAIN DASHBOARD ---
+# --- DASHBOARD ---
 col_inputs, col_results = st.columns([1, 1.4], gap="large")
 
-# ========================
-# LEFT COLUMN: INPUTS
-# ========================
 with col_inputs:
-    st.selectbox("📂 Load Profile:", options=list(personas.keys()), key="persona_selector", on_change=update_sliders)
+    st.selectbox("📂 Pick a Scenario:", options=list(personas.keys()), key="persona_selector", on_change=update_sliders)
     st.write("") 
 
-    # SECTION 1
     st.markdown("##### 1. Your Numbers")
     
     st.caption(f"**A. Job Volume:** {st.session_state.jobs}/mo")
@@ -155,22 +148,22 @@ with col_inputs:
     
     st.write("") 
 
-    # SECTION 2
     st.markdown("##### 2. The Chaos Factor")
     
     st.markdown(f"**D. 'Oh Sh*t' Moments Per Job:** {st.session_state.chaos}")
-    st.caption("Supply runs, callbacks, idle crews, fixing mistakes.")
+    
+    # DYNAMIC ROAST
+    roast = get_chaos_commentary(st.session_state.chaos)
+    st.caption(f"*{roast}*")
+    
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
 
     st.write("") 
 
-    st.caption(f"**E. Cost Per Incident:** ${st.session_state.cost}")
+    st.caption(f"**E. Cost Per Screw Up:** ${st.session_state.cost}")
     breakdown = "IDLE CREW ($105) + FUEL ($45) + OFFICE ($30) + OPPORTUNITY ($70) = $250"
     st.slider("Cost", 50, 1000, key="cost", step=50, label_visibility="collapsed", help=breakdown)
 
-# ==========================
-# RIGHT COLUMN: RESULTS
-# ==========================
 with col_results:
     monthly_bleed = (st.session_state.jobs * st.session_state.chaos * st.session_state.cost)
     annual_bleed = monthly_bleed * 12
@@ -186,18 +179,14 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        # 1. HEADER LABEL 
         st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -15px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
         
-        # 2. BIG NUMBER
         st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
         
-        # 3. ALERT
         pain = get_pain_analogy(annual_bleed)
         if annual_bleed > 20000: st.error(f"⚠️ {pain}")
         else: st.warning(f"⚠️ {pain}")
 
-        # 4. REALITY BOXES
         st.markdown(f"""
         <div class="reality-row">
             <div class="reality-box" style="border-bottom: 4px solid #dc2626;">
@@ -213,7 +202,6 @@ with col_results:
         </div>
         """, unsafe_allow_html=True)
 
-        # 5. CHART 
         chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
         color_scale = alt.Scale(domain=['Keep', 'Burn'], range=['#198754', '#dc2626'])
         
@@ -226,7 +214,6 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
-        # 6. COMPACT FORM
         st.markdown('<div class="form-container">', unsafe_allow_html=True)
         st.caption("🛑 **Stop The Bleeding. Get the Fix.**")
         with st.form("lead_capture_form"):
