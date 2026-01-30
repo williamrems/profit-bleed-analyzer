@@ -10,46 +10,24 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS SURGERY (THE TIGHTENING) ---
+# --- CSS SURGERY ---
 st.markdown("""
     <style>
-    /* 1. AGGRESSIVE PADDING REDUCTION */
-    .main .block-container {
-        padding-top: 1rem !important; /* Was 4rem+ */
-        padding-bottom: 1rem !important;
-        max-width: 95% !important;
-    }
-    
-    /* 2. COMPACT HEADERS */
+    .main .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; max-width: 95% !important; }
     h1 { font-size: 1.5rem !important; margin-bottom: 0 !important; }
     h3 { font-size: 1.2rem !important; margin-top: 0 !important; margin-bottom: 0.5rem !important; }
     p { margin-bottom: 0.5rem !important; font-size: 0.95rem; }
+    div[data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
     
-    /* 3. TIGHTEN WIDGET SPACING */
-    div[data-testid="stVerticalBlock"] {
-        gap: 0.5rem !important; /* Shrinks gap between elements */
-    }
+    /* Make the MAIN Bleed Metric HUGE */
+    div[data-testid="stMetricValue"] { font-size: 2.2rem !important; color: #dc2626 !important; font-weight: 900; }
     
-    /* 4. MAKE METRICS STAND OUT BUT NOT TAKE UP HALF THE PAGE */
-    div[data-testid="stMetricValue"] {
-        font-size: 2.5rem !important;
-        color: #dc2626 !important;
-        font-weight: 900;
-        padding-bottom: 0 !important;
-    }
+    /* Custom style for the secondary "Reality Check" metrics to distinguish them */
+    .reality-metric { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+    .reality-label { font-size: 0.9rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
     
-    /* 5. BUTTON STYLING */
-    div.stButton > button {
-        background-color: #0d6efd;
-        color: white;
-        width: 100%;
-        border-radius: 6px;
-        padding: 0.5rem;
-        border: none;
-    }
+    div.stButton > button { background-color: #0d6efd; color: white; width: 100%; border-radius: 6px; padding: 0.5rem; border: none; }
     div.stButton > button:hover { background-color: #0b5ed7; color: white; border: none; }
-    
-    /* 6. CENTER IMAGES */
     div[data-testid="stImage"] { display: flex; justify-content: center; }
     </style>
 """, unsafe_allow_html=True)
@@ -63,14 +41,11 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 80000: return "That's a full-time PM's salary burned."
     else: return "You could have bought a vacation cabin."
 
-# --- COMPACT HEADER ---
-# Using columns to put Logo side-by-side with Title to save vertical space
+# --- HEADER ---
 h1, h2 = st.columns([1, 4])
 with h1:
-    try:
-        st.image("logo.png", width=120) # Smaller logo
-    except:
-        st.write("LOGO")
+    try: st.image("logo.png", width=120) 
+    except: st.write("LOGO")
 with h2:
     st.markdown("<h1 style='padding-top: 10px;'>Is Your Process Bleeding Profit?</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #475569;'>Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.</p>", unsafe_allow_html=True)
@@ -86,33 +61,27 @@ col_inputs, col_results = st.columns([1, 1], gap="medium")
 with col_inputs:
     st.markdown("### 1. Your Numbers")
     
-    # Using markdown for labels allows tighter spacing than st.write
     st.markdown("**A. Job Volume**")
     avg_jobs = st.slider("Jobs/Month", 1, 50, 8, label_visibility="collapsed")
     st.caption(f"Doing **{avg_jobs}** jobs per month.")
 
-    st.markdown("**B. Average Job Price**") 
+    st.markdown("**B. Average Invoice (Total Job Price)**") 
     avg_revenue = st.slider("Revenue", 5000, 50000, 15000, 500, format="$%d", label_visibility="collapsed")
     st.caption(f"Avg Ticket: **${avg_revenue:,.0f}**")
 
-    st.markdown("**C. Target Profit Margin (%)**")
+    # CLARIFIED LABEL
+    st.markdown("**C. Target Net Profit Margin (Per Job)**")
     profit_margin = st.slider("Margin", 5, 50, 20, 1, format="%d%%", label_visibility="collapsed")
-    st.caption(f"Healthy Margin: **{profit_margin}%**")
+    st.caption(f"Goal Margin: **{profit_margin}%**")
 
-    st.markdown("---") # Tighter divider
+    st.markdown("---") 
     
     st.markdown("### 2. The Chaos Factor")
     st.markdown("**D. 'Oh Sh*t' Moments Per Job**")
-    chaos_factor = st.select_slider(
-        "Incidents",
-        options=[0, 1, 2, 3, 4, 5],
-        value=2,
-        label_visibility="collapsed"
-    )
+    chaos_factor = st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], value=2, label_visibility="collapsed")
     st.caption(f"Values: 0 (Perfect) to 5 (Total Chaos). You picked: **{chaos_factor}**")
 
     st.markdown("**E. Cost Per Incident**")
-    # Compact tooltip
     breakdown = "IDLE CREW ($105) + FUEL ($45) + OFFICE ($30) + OPPORTUNITY ($70) = $250"
     cost_per_incident = st.slider("Cost", 50, 1000, 250, 50, format="$%d", label_visibility="collapsed", help=breakdown)
     st.caption(f"Using **${cost_per_incident}** per incident.")
@@ -126,21 +95,48 @@ with col_results:
     annual_bleed = monthly_bleed * 12
     monthly_revenue = avg_jobs * avg_revenue
     annual_revenue = monthly_revenue * 12
+    
     potential_profit = annual_revenue * (profit_margin / 100)
     actual_profit = potential_profit - annual_bleed
+    
+    # NEW: KNIFE TWIST CALCULATIONS
+    if potential_profit > 0:
+        percent_burned = (annual_bleed / potential_profit) * 100
+        realized_margin = (actual_profit / annual_revenue) * 100
+    else:
+        percent_burned = 0
+        realized_margin = 0
 
     if chaos_factor > 0:
         st.markdown("### 3. The Damage Report")
         
-        # Metric
+        # 1. The Big Dollar Amount
         st.metric(label="ANNUAL PROFIT LOST", value=f"${annual_bleed:,.0f}")
         
-        # Alert Box
+        # 2. The Pain Analogy Box
         pain = get_pain_analogy(annual_bleed)
         if annual_bleed > 20000: st.error(f"⚠️ {pain}")
         else: st.warning(f"⚠️ {pain}")
 
-        # Chart - Height reduced to 280 to fit screen better
+        # 3. THE KNIFE TWIST METRICS (New Columns)
+        k1, k2 = st.columns(2)
+        with k1:
+            # We use HTML to style these specifically (Red for bad, Orange for warning)
+            st.markdown(f"""
+            <div class='reality-label'>Profit Burned</div>
+            <div class='reality-metric' style='color: #dc2626;'>{percent_burned:.1f}%</div>
+            <div style='font-size: 0.8rem; color: #64748b;'>of your potential profit is gone.</div>
+            """, unsafe_allow_html=True)
+            
+        with k2:
+            st.markdown(f"""
+            <div class='reality-label'>Realized Margin</div>
+            <div class='reality-metric' style='color: #d97706;'>{realized_margin:.1f}%</div>
+            <div style='font-size: 0.8rem; color: #64748b;'>You aimed for {profit_margin}%, but got this.</div>
+            """, unsafe_allow_html=True)
+
+        # 4. The Chart
+        st.write("") # Spacer
         chart_data = pd.DataFrame({
             'Category': ['Money You Keep', 'Money You Burn'],
             'Amount': [max(0, actual_profit), annual_bleed],
@@ -152,7 +148,7 @@ with col_results:
             y=alt.Y('Amount', title='Dollars', axis=alt.Axis(format='$,.0f')),
             color=alt.Color('Category', scale=alt.Scale(domain=['Money You Keep', 'Money You Burn'], range=['#198754', '#dc2626']), legend=None),
             tooltip=['Category', 'Amount']
-        ).properties(height=280) # Reduced height
+        ).properties(height=250) 
         
         st.altair_chart(c, use_container_width=True)
     else:
@@ -161,9 +157,7 @@ with col_results:
 
 # --- LEAD CAPTURE ---
 st.markdown("---")
-
-# Compact Lead Form
-c_left, c_mid, c_right = st.columns([1, 3, 1]) # Slightly wider mid column for better form fit
+c_left, c_mid, c_right = st.columns([1, 3, 1]) 
 
 with c_mid:
     st.markdown("#### Stop The Bleeding.")
@@ -176,7 +170,6 @@ with c_mid:
             
         company = st.text_input("Company Name")
         email = st.text_input("Email Address")
-        # Removed extra fields to make it shorter/cleaner
         
         submitted = st.form_submit_button("SEND ME THE FIX >>")
 
