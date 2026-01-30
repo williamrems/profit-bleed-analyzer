@@ -41,6 +41,7 @@ st.markdown("""
         color: #dc2626 !important; 
         font-weight: 900; 
         text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        line-height: 1.0;
     }
     div[data-testid="stMetricLabel"] { display: none; } 
     
@@ -60,8 +61,12 @@ st.markdown("""
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 15px;
-        margin-top: 15px;
+        margin-top: 5px;
     }
+
+    /* 7. ALERT BOX TWEAK */
+    /* Make the alert box text slightly larger/bolder */
+    .stAlert { font-weight: 600; }
 
     #MainMenu, footer, header {visibility: hidden;}
     </style>
@@ -103,13 +108,13 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 120000: return "That's a literal down payment on a lake house."
     else: return "You are working for free. Fix your sh*t."
 
-# --- SLIDER ROASTS ---
+# --- SLIDER ROASTS (UPDATED FOR SUPPLY RUNS) ---
 def get_chaos_commentary(level):
     if level == 0: return "You're lying. No one is this perfect."
-    if level == 1: return "Tight ship. Or you're forgetting stuff."
-    if level == 2: return "Standard chaos. Still expensive."
-    if level == 3: return "You're leaking cash daily."
-    if level == 4: return "Your hair is on fire."
+    if level == 1: return "1 Home Depot run / week. Manageable."
+    if level == 2: return "Standard chaos. 2-3 supply runs/week."
+    if level == 3: return "You're at Menards more than the job site."
+    if level == 4: return "Your crews are sitting in the truck right now."
     if level == 5: return "Total Dumpster Fire. Call us immediately."
     return ""
 
@@ -179,14 +184,22 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -15px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
+        st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -10px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
         
-        st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
+        # --- NEW LAYOUT: SIDE-BY-SIDE ---
+        c_metric, c_alert = st.columns([1, 1.5], gap="small")
         
-        pain = get_pain_analogy(annual_bleed)
-        if annual_bleed > 20000: st.error(f"⚠️ {pain}")
-        else: st.warning(f"⚠️ {pain}")
+        with c_metric:
+            st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
+            
+        with c_alert:
+            # We use a spacer to push the alert down slightly to align with the text of the metric
+            st.write("") 
+            pain = get_pain_analogy(annual_bleed)
+            if annual_bleed > 20000: st.error(f"⚠️ {pain}")
+            else: st.warning(f"⚠️ {pain}")
 
+        # --- REALITY BOXES ---
         st.markdown(f"""
         <div class="reality-row">
             <div class="reality-box" style="border-bottom: 4px solid #dc2626;">
