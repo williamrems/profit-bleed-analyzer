@@ -57,15 +57,16 @@ avg_jobs = st.slider("Jobs Completed Per Month", min_value=1, max_value=50, valu
 
 # DYNAMIC CURRENCY HEADER
 # Streamlit sliders are tricky with commas, so we show the formatted number clearly above
-st.write(f"**Average Revenue Per Job:**") 
+# SWAP THIS
+st.write(f"**Average Invoice Amount (Total Job Price):**") 
 avg_revenue = st.slider(
-    "Select Revenue", # Label hidden visually by empty space logic if preferred, or keep simple
+    "Select Revenue", 
     min_value=5000, 
     max_value=50000, 
     value=15000, 
     step=500,
-    format="$%d", # Adds the $ sign to the handle
-    label_visibility="collapsed" # Hides the duplicate label to keep it clean
+    format="$%d",
+    label_visibility="collapsed"
 )
 # Display the big clean number with commas
 st.info(f"Selected Average Job Size: **${avg_revenue:,.0f}**")
