@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: PERFECT BALANCE ---
+# --- CSS: PERFECT BALANCE & CLEAN FORM ---
 st.markdown("""
     <style>
     /* 1. RESET STREAMLIT PADDING */
@@ -96,13 +96,15 @@ st.markdown("""
     .card-orange .card-lbl { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 5px; }
     .card-orange .card-sub { font-size: 0.75rem; color: #64748b; }
     
-    /* 6. FORM CONTAINER */
-    .form-container {
+    /* 6. CLEAN FORM STYLING (THE FIX) */
+    /* Target the Streamlit Form directly to avoid double-borders */
+    div[data-testid="stForm"] {
         background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 5px;
+        border: 1px solid #cbd5e1;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-top: 20px; /* Separation from chart */
     }
 
     #MainMenu, footer, header {visibility: hidden;}
@@ -218,8 +220,7 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        pain = get_pain_analogy(annual_bleed)
-
+        
         # 1. THE TOTEM POLE (Center Aligned Metric + Burn Rate)
         st.markdown(f"""
         <div class="big-metric-container">
@@ -230,6 +231,7 @@ with col_results:
         """, unsafe_allow_html=True)
         
         # 2. THE TWIN CARDS (Pain vs Reality)
+        pain = get_pain_analogy(annual_bleed)
         st.markdown(f"""
         <div class="card-row">
             <div class="score-card card-red">
@@ -257,9 +259,8 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
-        # 4. FORM
-        st.markdown('<div class="form-container">', unsafe_allow_html=True)
-        st.caption("🛑 **Stop The Bleeding. Get the Fix.**")
+        # 4. FORM (Clean Integration)
+        st.markdown("##### 🛑 Stop The Bleeding. Get the Fix.")
         with st.form("lead_capture_form"):
             c1, c2, c3 = st.columns([1, 1, 1.5])
             with c1: st.text_input("First Name", label_visibility="collapsed", placeholder="First Name")
@@ -267,7 +268,6 @@ with col_results:
             with c3: st.text_input("Email", label_visibility="collapsed", placeholder="Email Address")
             
             st.form_submit_button("SEND ME THE REPORT >>", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     else:
         st.success("You claimed 0 incidents. Move the slider to see reality!")
