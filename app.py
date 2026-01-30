@@ -10,49 +10,50 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: ZERO WASTE EDITION ---
+# --- CSS: THE GOLDILOCKS ZONE ---
 st.markdown("""
     <style>
-    /* 1. AGGRESSIVE PADDING REMOVAL */
+    /* 1. BALANCED PADDING */
     .main .block-container { 
-        padding-top: 1rem !important; 
-        padding-bottom: 1rem !important; 
-        max-width: 95% !important;
+        padding-top: 2rem !important; 
+        padding-bottom: 2rem !important; 
+        max-width: 90% !important;
     }
     
-    /* 2. COMPACT HEADERS */
-    h1 { font-size: 1.5rem !important; margin: 0 !important; padding: 0 !important;}
-    p { font-size: 0.9rem !important; margin-top: 0 !important; margin-bottom: 0.5rem !important; }
-    h3 { font-size: 1.1rem !important; margin-top: 0.5rem !important; margin-bottom: 0.2rem !important; border-bottom: 1px solid #eee;}
+    /* 2. HEADERS THAT POP */
+    h1 { font-size: 2.2rem !important; margin: 0 !important; font-weight: 800; color: #1e293b; }
+    p { font-size: 1.1rem !important; color: #64748b; margin-top: 0.5rem; }
+    h3 { font-size: 1.2rem !important; margin-top: 1rem !important; margin-bottom: 1rem !important; color: #334155; font-weight: 700;}
     
-    /* 3. TIGHTER WIDGETS */
-    div[data-testid="stVerticalBlock"] { gap: 0.4rem !important; }
-    div.stSlider { padding-top: 0rem !important; padding-bottom: 0rem !important; margin-bottom: -15px !important; }
+    /* 3. WIDGET SPACING (BREATHABLE) */
+    div[data-testid="stVerticalBlock"] { gap: 0.8rem !important; }
     
-    /* 4. THE BIG METRIC */
+    /* 4. THE BIG METRIC (GRAVITAS) */
     div[data-testid="stMetricValue"] { 
-        font-size: 3rem !important; 
+        font-size: 3.8rem !important; 
         color: #dc2626 !important; 
         font-weight: 900; 
-        line-height: 1.1;
+        text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
     }
-    div[data-testid="stMetricLabel"] { font-size: 0.9rem !important; font-weight: 700; }
+    div[data-testid="stMetricLabel"] { font-size: 1.1rem !important; font-weight: 700; color: #64748b; }
     
     /* 5. REALITY CHECK BOXES */
-    .reality-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .reality-row { display: flex; gap: 15px; margin-bottom: 15px; }
     .reality-box { 
-        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; 
-        padding: 0.5rem; flex: 1; text-align: center;
+        background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; 
+        padding: 15px; flex: 1; text-align: center;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
-    .reality-val { font-size: 1.2rem; font-weight: 800; line-height: 1; }
-    .reality-lbl { font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
+    .reality-val { font-size: 1.6rem; font-weight: 800; line-height: 1.2; }
+    .reality-lbl { font-size: 0.8rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
     
-    /* 6. FORM CONTAINER */
+    /* 6. FORM CONTAINER (Professional Footer) */
     .form-container {
-        background-color: #f1f5f9;
-        border-radius: 8px;
-        padding: 10px 15px;
-        margin-top: 10px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 15px;
     }
     
     /* Center Logo vertically */
@@ -91,54 +92,58 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 80000: return "That's a Project Manager's salary."
     else: return "You could have bought a vacation cabin."
 
-# --- HEADER (EFFICIENT) ---
-# Small column for Logo, Big for Title
+# --- HEADER (CLEAN & POWERFUL) ---
 c_logo, c_title = st.columns([1, 6])
-
 with c_logo:
-    try: st.image("logo.png", width=100)
+    try: st.image("logo.png", width=110)
     except: st.write("LOGO")
-
 with c_title:
     st.markdown("<h1>Is Your Process Bleeding Profit?</h1>", unsafe_allow_html=True)
     st.markdown("<p>Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>", unsafe_allow_html=True)
 
-st.markdown("---") # Thin divider
+st.markdown("---")
 
-# --- MAIN DASHBOARD (SPLIT 40/60) ---
-col_inputs, col_results = st.columns([1, 1.3], gap="large")
+# --- MAIN DASHBOARD (SPLIT 35/65) ---
+# Giving the right column more space for the Chart to breathe
+col_inputs, col_results = st.columns([1, 1.5], gap="large")
 
 # ========================
-# LEFT COLUMN: INPUTS (STACKED TIGHT)
+# LEFT COLUMN: INPUTS (The Control Panel)
 # ========================
 with col_inputs:
     # Scenario Picker
     st.selectbox("📂 Load Profile:", options=list(personas.keys()), key="persona_selector", on_change=update_sliders)
+    st.write("") # spacer
+
+    # SECTION 1: NUMBERS
+    st.markdown("### 1. Your Numbers")
     
-    # SECTION 1
-    st.subheader("1. Your Numbers")
-    
-    st.caption(f"**A. Job Volume:** {st.session_state.jobs}/mo")
+    st.markdown(f"**A. Job Volume:** {st.session_state.jobs}/mo")
     st.slider("Jobs", 1, 50, key="jobs", label_visibility="collapsed")
 
-    st.caption(f"**B. Avg Invoice:** ${st.session_state.rev:,.0f}") 
+    st.markdown(f"**B. Avg Invoice:** ${st.session_state.rev:,.0f}") 
     st.slider("Revenue", 5000, 50000, key="rev", step=500, label_visibility="collapsed")
 
-    st.caption(f"**C. Target Margin:** {st.session_state.margin}%")
+    st.markdown(f"**C. Target Margin:** {st.session_state.margin}%")
     st.slider("Margin", 5, 50, key="margin", step=1, label_visibility="collapsed")
     
-    # SECTION 2
-    st.subheader("2. The Chaos Factor")
+    st.divider()
+
+    # SECTION 2: CHAOS
+    st.markdown("### 2. The Chaos Factor")
     
-    st.caption(f"**D. Incidents Per Job:** {st.session_state.chaos}")
+    st.markdown(f"**D. Incidents Per Job:** {st.session_state.chaos}")
+    st.caption("How often do crews wait, return to supply house, or fix paperwork?")
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
 
-    st.caption(f"**E. Cost Per Incident:** ${st.session_state.cost}")
+    st.write("") # spacer
+
+    st.markdown(f"**E. Cost Per Incident:** ${st.session_state.cost}")
     breakdown = "IDLE CREW ($105) + FUEL ($45) + OFFICE ($30) + OPPORTUNITY ($70) = $250"
     st.slider("Cost", 50, 1000, key="cost", step=50, label_visibility="collapsed", help=breakdown)
 
 # ==========================
-# RIGHT COLUMN: RESULTS (VISUALS)
+# RIGHT COLUMN: RESULTS (The Impact)
 # ==========================
 with col_results:
     # Calculations
@@ -164,21 +169,23 @@ with col_results:
         if annual_bleed > 20000: st.error(f"⚠️ {pain}")
         else: st.warning(f"⚠️ {pain}")
 
-        # 3. REALITY CHECK (Compact Row)
+        # 3. REALITY CHECK (Side by Side)
         st.markdown(f"""
         <div class="reality-row">
-            <div class="reality-box">
+            <div class="reality-box" style="border-bottom: 4px solid #dc2626;">
                 <div class="reality-lbl">Profit Burned</div>
                 <div class="reality-val" style="color: #dc2626;">{percent_burned:.1f}%</div>
+                <div style='font-size:0.8rem; color:#94a3b8;'>of your potential</div>
             </div>
-            <div class="reality-box">
+            <div class="reality-box" style="border-bottom: 4px solid #f59e0b;">
                 <div class="reality-lbl">Realized Margin</div>
                 <div class="reality-val" style="color: #d97706;">{realized_margin:.1f}%</div>
+                <div style='font-size:0.8rem; color:#94a3b8;'>vs {st.session_state.margin}% Goal</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # 4. VERTICAL CHART (SMACKING!)
+        # 4. TOWER CHART (Restored Height)
         chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
         color_scale = alt.Scale(domain=['Keep', 'Burn'], range=['#198754', '#dc2626'])
         
@@ -187,13 +194,13 @@ with col_results:
             y=alt.Y('Amount', title=None, axis=alt.Axis(format='$,.0f', grid=False)), 
             color=alt.Color('Category', scale=color_scale, legend=None),
             tooltip=['Category', 'Amount']
-        ).properties(height=200) # Compact height but still vertical
+        ).properties(height=320) # <--- THE GRAVITAS IS HERE
         
         st.altair_chart(c, use_container_width=True)
 
-        # 5. COMPACT FORM (Integrated)
+        # 5. INTEGRATED FORM
         st.markdown('<div class="form-container">', unsafe_allow_html=True)
-        st.caption("🛑 **Stop The Bleeding. Get the Fix.**")
+        st.markdown("**🛑 Stop The Bleeding. Get the Fix.**")
         with st.form("lead_capture_form"):
             c1, c2, c3 = st.columns([1, 1, 1.5])
             with c1: st.text_input("First Name", label_visibility="collapsed", placeholder="First Name")
