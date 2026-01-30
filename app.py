@@ -68,6 +68,19 @@ avg_revenue = st.slider(
 )
 st.info(f"Selected Average Job Size: **${avg_revenue:,.0f}**")
 
+# NEW: Profit Margin Slider
+st.write("**Target Net Profit Margin (%):**")
+profit_margin = st.slider(
+    "Profit Margin",
+    min_value=5,
+    max_value=50,
+    value=20, # Default to Industry Std
+    step=1,
+    format="%d%%",
+    label_visibility="collapsed"
+)
+st.caption(f"Calculating based on a **{profit_margin}%** healthy margin.")
+
 
 # --- INPUT SECTION 2: THE CHAOS ---
 st.markdown("### 2. The Chaos Factor")
@@ -80,17 +93,31 @@ chaos_factor = st.select_slider(
     help="0 = Perfect Robot Efficiency. 5 = Total Chaos."
 )
 
-# --- NEW: DYNAMIC COST PER INCIDENT ---
+# --- DYNAMIC COST PER INCIDENT WITH TOOLTIP BREAKDOWN ---
 st.write("**Cost Per 'Oh Sh*t' Moment:**")
 st.caption("Includes: Crew labor (idle time), fuel, vehicle wear, and office time to fix it.")
+
+# The detailed breakdown tooltip logic
+cost_breakdown = """
+HOW WE CALCULATE $250:
+----------------------
+1. IDLE CREW (3 Guys x $35/hr x 1 hr lost) = $105
+2. FUEL & VEHICLE WEAR (Round trip) = $45
+3. OFFICE ADMIN (Rescheduling/Fixing) = $30
+4. OPPORTUNITY COST (Profit you didn't make) = $70
+----------------------
+TOTAL = $250 per incident
+"""
+
 cost_per_incident = st.slider(
     "Cost Per Incident",
     min_value=50,
     max_value=1000,
-    value=250, # ANCHORED DEFAULT
+    value=250, 
     step=50,
     format="$%d",
-    label_visibility="collapsed"
+    label_visibility="collapsed",
+    help=cost_breakdown # This adds the '?' tooltip with the math
 )
 st.info(f"Using **${cost_per_incident}** per incident. (Industry Avg is $250)")
 
@@ -101,7 +128,9 @@ annual_bleed = monthly_bleed * 12
 
 monthly_revenue = avg_jobs * avg_revenue
 annual_revenue = monthly_revenue * 12
-potential_profit = annual_revenue * 0.20
+
+# Use user-defined margin now
+potential_profit = annual_revenue * (profit_margin / 100)
 actual_profit = potential_profit - annual_bleed
 
 # --- THE REVEAL ---
@@ -174,8 +203,8 @@ with st.form("lead_capture_form"):
                 "00N_DUMMY_REVENUE_ID": revenue,
                 "00N_DUMMY_ANNUAL_BLEED": annual_bleed,
                 "00N_DUMMY_CHAOS_FACTOR": chaos_factor,
-                # Pass their custom cost estimate so Sales knows it
-                "00N_DUMMY_COST_PER_INCIDENT": cost_per_incident, 
+                "00N_DUMMY_COST_PER_INCIDENT": cost_per_incident,
+                "00N_DUMMY_TARGET_MARGIN": profit_margin, # Passing the new margin to sales
                 "lead_source": "Profit Calculator App"
             }
             
