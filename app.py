@@ -10,70 +10,69 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CUSTOM CSS FOR MOBILE OPTIMIZATION ---
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
-    /* Make the mobile experience cleaner */
-    .stApp {
-        background-color: #f8f9fa;
-    }
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-    }
-    h1 {
-        font-family: 'Helvetica', sans-serif;
-        color: #0f172a;
-        font-size: 1.8rem !important;
-        font-weight: 800;
-    }
-    /* Style the big metrics */
-    div[data-testid="stMetricValue"] {
-        font-size: 2.5rem !important;
-        color: #dc2626 !important; /* Profit Bleed Red */
-        font-weight: 900;
-    }
-    /* Style the submit button */
-    div.stButton > button {
-        background-color: #0d6efd;
-        color: white;
-        width: 100%;
-        border-radius: 8px;
-        padding: 0.75rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        border: none;
-    }
-    div.stButton > button:hover {
-        background-color: #0b5ed7;
-        color: white;
-        border: none;
-    }
+    .stApp { background-color: #f8f9fa; }
+    .main .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+    h1 { color: #0f172a; font-weight: 800; }
+    div[data-testid="stMetricValue"] { font-size: 2.5rem !important; color: #dc2626 !important; font-weight: 900; }
+    div.stButton > button { background-color: #0d6efd; color: white; width: 100%; border-radius: 8px; padding: 0.75rem; border: none; }
+    div.stButton > button:hover { background-color: #0b5ed7; color: white; border: none; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER & LOGO ---
+# --- DYNAMIC PAIN LOGIC ---
+def get_pain_analogy(loss_amount):
+    """Returns a relatable purchase based on the amount of money lost."""
+    if loss_amount < 5000:
+        return "That's a really nice family vacation to Mexico."
+    elif loss_amount < 12000:
+        return "That's a brand new Honda ATV or two nice jet skis."
+    elif loss_amount < 25000:
+        return "You could have bought a brand new Harley Davidson."
+    elif loss_amount < 50000:
+        return "You literally threw away a brand new Ford F-150 work truck."
+    elif loss_amount < 80000:
+        return "That's a full-time Project Manager's salary you just burned."
+    else:
+        return "You could have bought a freaking vacation home / cabin."
+
+# --- HEADER ---
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     try:
         st.image("logo.png", width=200)
     except:
-        st.header("ContractorFlow") # Fallback if image missing
+        st.header("ContractorFlow")
 
 st.title("Is Your Process Bleeding Profit?")
 st.caption("Most exterior remodelers lose 15-20% of their margin to inefficiency. Find out your number.")
-
 st.divider()
 
-# --- INPUT SECTION (THE CALCULATOR) ---
+# --- INPUT SECTION ---
 st.subheader("1. Your Numbers")
 
-# Sliders for easy mobile input
 avg_jobs = st.slider("Jobs Completed Per Month", min_value=1, max_value=50, value=8)
-avg_revenue = st.slider("Average Revenue Per Job ($)", min_value=5000, max_value=50000, value=15000, step=500)
+
+# DYNAMIC CURRENCY HEADER
+# Streamlit sliders are tricky with commas, so we show the formatted number clearly above
+st.write(f"**Average Revenue Per Job:**") 
+avg_revenue = st.slider(
+    "Select Revenue", # Label hidden visually by empty space logic if preferred, or keep simple
+    min_value=5000, 
+    max_value=50000, 
+    value=15000, 
+    step=500,
+    format="$%d", # Adds the $ sign to the handle
+    label_visibility="collapsed" # Hides the duplicate label to keep it clean
+)
+# Display the big clean number with commas
+st.info(f"Selected Average Job Size: **${avg_revenue:,.0f}**")
+
 
 st.markdown("### 2. The Chaos Factor")
-st.info("Be honest. How often do crews wait on materials, return to the supply house, or fix paperwork errors per job?")
+st.write("How often do crews wait on materials, return to the supply house, or fix paperwork errors per job?")
 
 chaos_factor = st.select_slider(
     "Incidents Per Job",
@@ -82,43 +81,39 @@ chaos_factor = st.select_slider(
     help="0 = Perfect Robot Efficiency. 5 = Total Chaos."
 )
 
-# --- THE MATH (THE LOGIC) ---
-# Industry assumptions
-cost_per_incident = 250  # Labor, fuel, opportunity cost
+# --- THE MATH ---
+cost_per_incident = 250 
 monthly_bleed = (avg_jobs * chaos_factor * cost_per_incident)
 annual_bleed = monthly_bleed * 12
 
-# Revenue context
 monthly_revenue = avg_jobs * avg_revenue
 annual_revenue = monthly_revenue * 12
-# Assuming a healthy 20% net margin for context (before bleed)
 potential_profit = annual_revenue * 0.20
 actual_profit = potential_profit - annual_bleed
 
-# --- THE REVEAL (THE VISUALS) ---
+# --- THE REVEAL ---
 st.divider()
 
 if chaos_factor > 0:
     st.subheader("3. The Damage Report")
     
-    # big red metric
     st.metric(label="ANNUAL PROFIT LOST TO INEFFICIENCY", value=f"${annual_bleed:,.0f}")
     
-    # Contextual note
+    # --- DYNAMIC ANALOGY CALL ---
+    pain_message = get_pain_analogy(annual_bleed)
+    
     if annual_bleed > 20000:
-        st.error(f"⚠️ You are throwing away a brand new truck every year.")
+        st.error(f"⚠️ {pain_message}")
     else:
-        st.warning(f"⚠️ That's ${monthly_bleed:,.0f} missing from your pocket every single month.")
+        st.warning(f"⚠️ {pain_message}")
 
-    # Visual Chart (Stacked Bar)
-    # We create a simple dataframe for the chart
+    # Chart
     chart_data = pd.DataFrame({
         'Category': ['Money You Keep', 'Money You Burn'],
         'Amount': [actual_profit if actual_profit > 0 else 0, annual_bleed],
-        'Color': ['#198754', '#dc2626'] # Green vs Red
+        'Color': ['#198754', '#dc2626'] 
     })
     
-    # Altair chart for custom colors
     c = alt.Chart(chart_data).mark_bar().encode(
         x=alt.X('Category', sort=None, title=None),
         y=alt.Y('Amount', title='Annual Dollars'),
@@ -132,13 +127,12 @@ else:
     st.success("You claimed 0 incidents. Either you are a robot, or you're lying to yourself! Try moving the slider to see reality.")
 
 
-# --- LEAD CAPTURE (WEB-TO-LEAD SIMULATION) ---
+# --- LEAD CAPTURE ---
 st.divider()
 st.subheader("Stop The Bleeding.")
 st.markdown("Get the full **'Profit Leak Analysis'** and our **Process Fix Checklist** sent to your inbox.")
 
 with st.form("lead_capture_form"):
-    # Two column layout for names
     c1, c2 = st.columns(2)
     with c1:
         first_name = st.text_input("First Name")
@@ -147,51 +141,30 @@ with st.form("lead_capture_form"):
         
     company = st.text_input("Company Name")
     email = st.text_input("Email Address")
-    
-    # Optional Phone
     phone = st.text_input("Mobile Phone (Optional - for text alerts)")
-
-    # Qualification Dropdowns
     trade = st.selectbox("Primary Trade", ["Roofing", "Siding", "Windows/Doors", "General Contracting", "Other"])
     revenue = st.selectbox("Annual Revenue Range", ["Under $500k", "$500k - $1M", "$1M - $3M", "$3M - $5M", "$5M+"])
 
-    # Hidden Field Simulation (The Calculator Results passed to Salesforce)
-    # We don't show these, but we would send them
-    
     submitted = st.form_submit_button("SEND ME THE FIX >>")
 
     if submitted:
         if not email or not first_name:
             st.error("Please fill in your Name and Email to get the report.")
         else:
-            # --- SALESFORCE WEB-TO-LEAD MOCKUP ---
-            # This is where the magic happens. 
-            # In a real deployment, you would POST this payload to: https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8
-            
+            # PAYLOAD WITH DYNAMIC ANALOGY INCLUDED (Optional)
             payload = {
-                # Standard Salesforce Fields (These names are standard)
-                "oid": "YOUR_SALESFORCE_ORG_ID_HERE",  # IMPORTANT: Swap this later
+                "oid": "YOUR_SALESFORCE_ORG_ID_HERE",
                 "first_name": first_name,
                 "last_name": last_name,
                 "company": company,
                 "email": email,
                 "phone": phone,
-                
-                # Custom Fields (You need to create these in Salesforce Object Manager -> Leads)
-                # Format is usually: 00Nxxxxxxxxxxxx
                 "00N_DUMMY_TRADE_ID": trade,
                 "00N_DUMMY_REVENUE_ID": revenue,
-                "00N_DUMMY_ANNUAL_BLEED": annual_bleed, # Pass the calculator result!
+                "00N_DUMMY_ANNUAL_BLEED": annual_bleed,
                 "00N_DUMMY_CHAOS_FACTOR": chaos_factor,
-                
-                # Campaign tracking
                 "lead_source": "Profit Calculator App"
             }
             
-            # Placeholder success message
             st.success(f"Report sent to {email}!")
             st.balloons()
-            
-            # In production, uncomment the requests line below:
-            # import requests
-            # response = requests.post("https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8", data=payload)
