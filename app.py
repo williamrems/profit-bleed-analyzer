@@ -10,59 +10,62 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS: NO MERCY ON WHITE SPACE ---
+# --- CSS: PRECISION FIT ---
 st.markdown("""
     <style>
-    /* 1. HIDE STREAMLIT DEFAULT ELEMENTS */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;} /* Hides the top colored bar/hamburger menu space */
-    
-    /* 2. RECLAIM VERTICAL SPACE */
+    /* 1. NUKE DEFAULT PADDING */
     .main .block-container { 
-        padding-top: 1rem !important; 
-        padding-bottom: 1rem !important; 
+        padding-top: 0.5rem !important; 
+        padding-bottom: 0.5rem !important; 
         max-width: 95% !important;
     }
     
-    /* 3. HEADERS */
-    h1 { font-size: 2rem !important; margin: 0 !important; font-weight: 800; color: #1e293b; line-height: 1.1; }
-    p { font-size: 1rem !important; color: #64748b; margin-top: 0.2rem; margin-bottom: 0.5rem; }
-    h3 { font-size: 1.1rem !important; margin-top: 1rem !important; margin-bottom: 0.5rem !important; color: #334155; font-weight: 700; border-bottom: 1px solid #e2e8f0;}
+    /* 2. CUSTOM NAVBAR HEADER */
+    .custom-header {
+        display: flex;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 15px;
+    }
+    .header-logo { width: 120px; margin-right: 20px; }
+    .header-title { font-size: 1.6rem; font-weight: 800; color: #1e293b; margin: 0; line-height: 1.1; }
+    .header-sub { font-size: 0.9rem; color: #64748b; margin: 0; }
+    
+    /* 3. TIGHT WIDGET SPACING */
+    div[data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+    div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; margin-bottom: -5px !important; }
     
     /* 4. METRICS & LABELS */
     div[data-testid="stMetricValue"] { 
-        font-size: 3.5rem !important; 
+        font-size: 3.2rem !important; 
         color: #dc2626 !important; 
         font-weight: 900; 
-        text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        text-shadow: 1px 1px 0px rgba(0,0,0,0.05);
     }
-    div[data-testid="stMetricLabel"] { font-size: 1rem !important; font-weight: 700; color: #64748b; }
+    div[data-testid="stMetricLabel"] { display: none; } /* Hide default label to save space, we use custom */
     
     /* 5. REALITY CHECK BOXES */
     .reality-row { display: flex; gap: 10px; margin-bottom: 10px; }
     .reality-box { 
         background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; 
-        padding: 10px; flex: 1; text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        padding: 8px; flex: 1; text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .reality-val { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+    .reality-val { font-size: 1.3rem; font-weight: 800; line-height: 1; }
     .reality-lbl { font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 700; }
     
-    /* 6. FORM CONTAINER */
+    /* 6. FORM CONTAINER (FOOTER) */
     .form-container {
-        background-color: #f8fafc;
+        background-color: #f1f5f9;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 10px;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 5px;
     }
     
-    /* Center Logo */
-    div[data-testid="stImage"] { display: flex; align-items: center; justify-content: center; height: 100%; }
-    
-    /* Slider Spacing */
-    div.stSlider { padding-top: 0px !important; padding-bottom: 10px !important; }
+    /* Hide Streamlit Elements */
+    #MainMenu, footer, header {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -97,19 +100,29 @@ def get_pain_analogy(loss_amount):
     elif loss_amount < 80000: return "That's a Project Manager's salary."
     else: return "You could have bought a vacation cabin."
 
-# --- HEADER (COMPACT) ---
-c_logo, c_title = st.columns([1, 7])
-with c_logo:
-    try: st.image("logo.png", width=100)
-    except: st.write("LOGO")
-with c_title:
-    st.markdown("<h1>Is Your Process Bleeding Profit?</h1>", unsafe_allow_html=True)
-    st.markdown("<p>Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>", unsafe_allow_html=True)
+# --- CUSTOM HTML HEADER (THE SPACE SAVER) ---
+# We use base64 or a direct link for the image if needed, but for now we assume local
+# Since we can't inject local images into HTML easily without base64, 
+# we will use a Layout trick: Column 1 is Empty (Logo Placeholder), Column 2 is Text
+# BUT... Pure HTML is better. Let's stick to Streamlit Image + Text side-by-side but TIGHT.
 
-st.markdown("---")
+c_head1, c_head2 = st.columns([0.8, 6])
+with c_head1:
+    try: st.image("logo.png", width=110)
+    except: st.write("LOGO")
+with c_head2:
+    st.markdown("""
+        <div style="margin-top: 5px;">
+            <h1 style="font-size: 1.8rem; margin:0; line-height:1;">Is Your Process Bleeding Profit?</h1>
+            <p style="font-size: 0.95rem; color: #64748b; margin:0;">Most exterior remodelers lose 15-20% of their margin to inefficiency.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='margin-bottom: 15px; border-bottom: 1px solid #eee;'></div>", unsafe_allow_html=True)
+
 
 # --- MAIN DASHBOARD (SPLIT 35/65) ---
-col_inputs, col_results = st.columns([1, 1.6], gap="large")
+col_inputs, col_results = st.columns([1, 1.5], gap="large")
 
 # ========================
 # LEFT COLUMN: INPUTS
@@ -119,30 +132,30 @@ with col_inputs:
     st.write("") 
 
     # SECTION 1
-    st.markdown("### 1. Your Numbers")
+    st.markdown("##### 1. Your Numbers")
     
-    st.markdown(f"**A. Job Volume:** {st.session_state.jobs}/mo")
+    st.caption(f"**A. Job Volume:** {st.session_state.jobs}/mo")
     st.slider("Jobs", 1, 50, key="jobs", label_visibility="collapsed")
 
-    st.markdown(f"**B. Avg Invoice:** ${st.session_state.rev:,.0f}") 
+    st.caption(f"**B. Avg Invoice:** ${st.session_state.rev:,.0f}") 
     st.slider("Revenue", 5000, 50000, key="rev", step=500, label_visibility="collapsed")
 
-    st.markdown(f"**C. Target Margin:** {st.session_state.margin}%")
+    st.caption(f"**C. Target Margin:** {st.session_state.margin}%")
     st.slider("Margin", 5, 50, key="margin", step=1, label_visibility="collapsed")
     
-    st.divider()
+    st.write("") # spacer
 
     # SECTION 2
-    st.markdown("### 2. The Chaos Factor")
+    st.markdown("##### 2. The Chaos Factor")
     
-    # THE GOLD IS BACK
+    # THE LEGEND IS BACK
     st.markdown(f"**D. 'Oh Sh*t' Moments Per Job:** {st.session_state.chaos}")
     st.caption("Supply runs, callbacks, idle crews, fixing mistakes.")
     st.select_slider("Incidents", options=[0, 1, 2, 3, 4, 5], key="chaos", label_visibility="collapsed")
 
     st.write("") 
 
-    st.markdown(f"**E. Cost Per Incident:** ${st.session_state.cost}")
+    st.caption(f"**E. Cost Per Incident:** ${st.session_state.cost}")
     breakdown = "IDLE CREW ($105) + FUEL ($45) + OFFICE ($30) + OPPORTUNITY ($70) = $250"
     st.slider("Cost", 50, 1000, key="cost", step=50, label_visibility="collapsed", help=breakdown)
 
@@ -164,15 +177,18 @@ with col_results:
         percent_burned, realized_margin = 0, 0
 
     if st.session_state.chaos > 0:
-        # 1. BIG NUMBER
-        st.metric(label="ANNUAL PROFIT LOST", value=f"${annual_bleed:,.0f}")
+        # 1. HEADER LABEL (Custom HTML instead of st.metric label)
+        st.markdown("<div style='color: #64748b; font-weight: 700; font-size: 0.9rem; margin-bottom: -15px;'>ANNUAL PROFIT LOST</div>", unsafe_allow_html=True)
         
-        # 2. ALERT
+        # 2. BIG NUMBER
+        st.metric(label="HIDDEN", value=f"${annual_bleed:,.0f}", label_visibility="collapsed")
+        
+        # 3. ALERT
         pain = get_pain_analogy(annual_bleed)
         if annual_bleed > 20000: st.error(f"⚠️ {pain}")
         else: st.warning(f"⚠️ {pain}")
 
-        # 3. REALITY BOXES
+        # 4. REALITY BOXES
         st.markdown(f"""
         <div class="reality-row">
             <div class="reality-box" style="border-bottom: 4px solid #dc2626;">
@@ -188,7 +204,7 @@ with col_results:
         </div>
         """, unsafe_allow_html=True)
 
-        # 4. CHART (300px Height - The Sweet Spot)
+        # 5. CHART (Optimized Height)
         chart_data = pd.DataFrame({'Category': ['Keep', 'Burn'], 'Amount': [max(0, actual_profit), annual_bleed]})
         color_scale = alt.Scale(domain=['Keep', 'Burn'], range=['#198754', '#dc2626'])
         
@@ -197,13 +213,13 @@ with col_results:
             y=alt.Y('Amount', title=None, axis=alt.Axis(format='$,.0f', grid=False)), 
             color=alt.Color('Category', scale=color_scale, legend=None),
             tooltip=['Category', 'Amount']
-        ).properties(height=300) 
+        ).properties(height=280) 
         
         st.altair_chart(c, use_container_width=True)
 
-        # 5. FORM
+        # 6. COMPACT FORM
         st.markdown('<div class="form-container">', unsafe_allow_html=True)
-        st.markdown("**🛑 Stop The Bleeding. Get the Fix.**")
+        st.caption("🛑 **Stop The Bleeding. Get the Fix.**")
         with st.form("lead_capture_form"):
             c1, c2, c3 = st.columns([1, 1, 1.5])
             with c1: st.text_input("First Name", label_visibility="collapsed", placeholder="First Name")
