@@ -12,6 +12,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ==========================================
+# 1. NEW: CAPTURE UTMs FROM URL
+# ==========================================
+# This reads the address bar parameters.
+query_params = st.query_params
+
+# We force lowercase to match your "Unbreakable" Spreadsheet rules
+# If the param is missing, we use defaults (direct/organic/evergreen)
+u_source = query_params.get("utm_source", "direct").lower()
+u_medium = query_params.get("utm_medium", "organic").lower()
+u_campaign = query_params.get("utm_campaign", "profit-bleed-analyzer").lower() 
+
 # --- HELPER: BASE64 IMAGE LOADER ---
 def get_image_base64(image_path):
     try:
@@ -319,6 +331,7 @@ with col_results:
                 else:
                     # --- SALESFORCE SUBMISSION LOGIC ---
                     
+                    # Your specific Org ID is in the payload below
                     sf_url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
                     
                     calc_summary = f"""
@@ -330,8 +343,16 @@ with col_results:
                     Chaos Factor: {st.session_state.chaos}/5
                     Cost Per Incident: ${st.session_state.cost}
                     Analogy: {pain}
+                    
+                    -- ATTRIBUTION DATA --
+                    UTM Source: {u_source}
+                    UTM Medium: {u_medium}
+                    UTM Campaign: {u_campaign}
                     """
                     
+                    # ==========================================
+                    # 2. UPDATED PAYLOAD FOR EVERGREEN FLOW
+                    # ==========================================
                     payload = {
                         "oid": "00D5Y000002VYeK",
                         "retURL": "http://",
@@ -340,8 +361,16 @@ with col_results:
                         "email": email,
                         "company": company,
                         "mobile": mobile,
-                        "lead_source": "Stop the Bleeding", # <--- HARDCODED LEAD SOURCE
-                        "description": calc_summary
+                        
+                        # Fallback Source (Flow will overwrite if UTMs exist)
+                        "lead_source": "Profit Bleed App", 
+                        
+                        "description": calc_summary,
+
+                        # --- NEW: YOUR SPECIFIC SALESFORCE FIELD IDs ---
+                        "00NQp000003OKv7": u_source,   # UTM Source
+                        "00NQp000003OKwj": u_medium,   # UTM Medium
+                        "00NQp000003OL1Z": u_campaign  # UTM Campaign
                     }
                     
                     try:
