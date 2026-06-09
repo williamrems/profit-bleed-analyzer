@@ -13,12 +13,16 @@ st.set_page_config(
 )
 
 # ==========================================
-# 1. NEW: CAPTURE UTMs FROM URL
+# 1. DUAL-MODE LOGIC & UTM HANDLING
 # ==========================================
-# This reads the address bar parameters.
 query_params = st.query_params
 
-# We force lowercase to match your "Unbreakable" Spreadsheet rules
+# The UI Rule: Form is ALWAYS ON, unless explicitly disabled by a rep.
+# This prevents you from losing organic leads who visit a naked URL.
+is_rep_mode = query_params.get("mode", "").lower() == "rep"
+show_lead_form = not is_rep_mode
+
+# The Attribution Rule: UTMs just do their tracking job silently.
 # If the param is missing, we use defaults (direct/organic/evergreen)
 u_source = query_params.get("utm_source", "direct").lower()
 u_medium = query_params.get("utm_medium", "organic").lower()
@@ -308,80 +312,78 @@ with col_results:
         
         st.altair_chart(c, use_container_width=True)
 
-        # 4. FORM (REAL SALESFORCE WEB-TO-LEAD)
-        st.markdown("##### 🛑 Stop The Bleeding. Fix Your Numbers.")
-        
-        with st.form("lead_capture_form"):
-            c1, c2 = st.columns(2)
-            with c1: 
-                first_name = st.text_input("First Name")
-                email = st.text_input("Email")
-            with c2: 
-                last_name = st.text_input("Last Name")
-                company = st.text_input("Company Name")
+        # ==========================================
+        # 4. CONDITIONAL FORM RENDERING
+        # ==========================================
+        if show_lead_form:
+            st.markdown("##### 🛑 Stop The Bleeding. Fix Your Numbers.")
             
-            mobile = st.text_input("Mobile Phone (Optional)")
+            with st.form("lead_capture_form"):
+                c1, c2 = st.columns(2)
+                with c1: 
+                    first_name = st.text_input("First Name")
+                    email = st.text_input("Email")
+                with c2: 
+                    last_name = st.text_input("Last Name")
+                    company = st.text_input("Company Name")
+                
+                mobile = st.text_input("Mobile Phone (Optional)")
 
-            # The CTA Button
-            submitted = st.form_submit_button("STOP THE BLEEDING - BOOK A DEMO >>")
+                # The CTA Button
+                submitted = st.form_submit_button("STOP THE BLEEDING - BOOK A DEMO >>")
 
-            if submitted:
-                if not email or not last_name:
-                    st.error("Please provide at least a Name and Email.")
-                else:
-                    # --- SALESFORCE SUBMISSION LOGIC ---
-                    
-                    # Your specific Org ID is in the payload below
-                    sf_url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
-                    
-                    calc_summary = f"""
-                    --- PROFIT BLEED CALCULATOR RESULTS ---
-                    Persona: {st.session_state.persona_selector}
-                    Annual Profit Lost: ${annual_bleed:,.0f}
-                    Profit Burned: {percent_burned:.1f}%
-                    Realized Margin: {realized_margin:.1f}% (vs {st.session_state.margin}% Target)
-                    Chaos Factor: {st.session_state.chaos}/5
-                    Cost Per Incident: ${st.session_state.cost}
-                    Analogy: {pain}
-                    
-                    -- ATTRIBUTION DATA --
-                    UTM Source: {u_source}
-                    UTM Medium: {u_medium}
-                    UTM Campaign: {u_campaign}
-                    """
-                    
-                    # ==========================================
-                    # 2. UPDATED PAYLOAD FOR EVERGREEN FLOW
-                    # ==========================================
-                    payload = {
-                        "oid": "00D5Y000002VYeK",
-                        "retURL": "http://",
-                        "first_name": first_name,
-                        "last_name": last_name,
-                        "email": email,
-                        "company": company,
-                        "mobile": mobile,
+                if submitted:
+                    if not email or not last_name:
+                        st.error("Please provide at least a Name and Email.")
+                    else:
+                        # --- SALESFORCE SUBMISSION LOGIC ---
+                        sf_url = "https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8"
                         
-                        # Fallback Source (Flow will overwrite if UTMs exist)
-                        "lead_source": "Profit Bleed App", 
+                        calc_summary = f"""
+                        --- PROFIT BLEED CALCULATOR RESULTS ---
+                        Persona: {st.session_state.persona_selector}
+                        Annual Profit Lost: ${annual_bleed:,.0f}
+                        Profit Burned: {percent_burned:.1f}%
+                        Realized Margin: {realized_margin:.1f}% (vs {st.session_state.margin}% Target)
+                        Chaos Factor: {st.session_state.chaos}/5
+                        Cost Per Incident: ${st.session_state.cost}
+                        Analogy: {pain}
                         
-                        "description": calc_summary,
+                        -- ATTRIBUTION DATA --
+                        UTM Source: {u_source}
+                        UTM Medium: {u_medium}
+                        UTM Campaign: {u_campaign}
+                        """
+                        
+                        payload = {
+                            "oid": "00D5Y000002VYeK",
+                            "retURL": "http://",
+                            "first_name": first_name,
+                            "last_name": last_name,
+                            "email": email,
+                            "company": company,
+                            "mobile": mobile,
+                            
+                            "lead_source": "Profit Bleed App", 
+                            "description": calc_summary,
 
-                        # --- NEW: YOUR SPECIFIC SALESFORCE FIELD IDs ---
-                        "00NQp000003OKv7": u_source,   # UTM Source
-                        "00NQp000003OKwj": u_medium,   # UTM Medium
-                        "00NQp000003OL1Z": u_campaign  # UTM Campaign
-                    }
-                    
-                    try:
-                        r = requests.post(sf_url, data=payload)
-                        if r.status_code == 200:
-                            st.success("Request Sent! A ContractorFlow expert will reach out shortly.")
-                            st.balloons()
-                        else:
-                            st.error("There was an error sending your request. Please try again.")
-                    except Exception as e:
-                        st.error(f"Connection Error: {e}")
+                            "00NQp000003OKv7": u_source,   # UTM Source
+                            "00NQp000003OKwj": u_medium,   # UTM Medium
+                            "00NQp000003OL1Z": u_campaign  # UTM Campaign
+                        }
+                        
+                        try:
+                            r = requests.post(sf_url, data=payload)
+                            if r.status_code == 200:
+                                st.success("Request Sent! A ContractorFlow expert will reach out shortly.")
+                                st.balloons()
+                            else:
+                                st.error("There was an error sending your request. Please try again.")
+                        except Exception as e:
+                            st.error(f"Connection Error: {e}")
+        else:
+            # Clean summary for Rep Mode to anchor the conversation
+            st.info("💡 **Rep Mode Active:** Use these numbers to guide your technical discovery.")
 
     else:
         st.success("You claimed 0 incidents. Move the slider to see reality!")
